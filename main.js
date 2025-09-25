@@ -1,9 +1,33 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
-const { token, prefix } = require('./config.json');
-const client = new Client({ intents: [GatewayIntentBits.MessageContent] });
+const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { token } = require('./config.json');
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.MessageContent
+    ],
+   disableMentions: 'everyone',
+});
 
+console.log("スタートアップファイルを読み込んでいます・・・");
+const startupPath = path.join(__dirname, 'startup');
+const startupFiles = fs.readdirSync(startupPath).filter(file => file.endsWith('.js'));
+
+for (const file of startupFiles) {
+	const filePath = path.join(startupPath, file);
+	const event = require(filePath);
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
+}
+
+console.log("コマンドを読み込んでいます・・・");
 client.commands = new Collection();
 
 const foldersPath = path.join(__dirname, 'commands');
@@ -23,7 +47,8 @@ for (const folder of commandFolders) {
 	}
 }
 
-const eventsPath = path.join(__dirname, 'events');
+console.log("イベントを読み込んでいます・・・");
+const eventsPath = path.join(__dirname, 'event');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
 for (const file of eventFiles) {
