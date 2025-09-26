@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.json');
+const { token, prefix } = require('./config.json');
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -48,17 +48,27 @@ for (const folder of commandFolders) {
 }
 
 console.log("イベントを読み込んでいます・・・");
-const eventsPath = path.join(__dirname, 'event');
-const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-
+const eventPath = path.join(__dirname, 'event');
+const eventFiles = fs.readdirSync(eventPath)
 for (const file of eventFiles) {
-	const filePath = path.join(eventsPath, file);
-	const event = require(filePath);
-	if (event.once) {
-		client.once(event.name, (...args) => event.execute(...args));
-	} else {
-		client.on(event.name, (...args) => event.execute(...args));
-	}
+    //commandフォルダに入っているコマンドを読み込み
+	const event = require(`./event/${file}`);
+	//commandファイル内にあるname:でコマンドを読み込み
+        client.commands.set(event.name, event);
 }
+console.log(`ロードが完了しました。`)
+
+client.on("messageCreate", async message => {
+    if (message.author.bot || message.webhookId) return;
+    if (!message.content.startsWith(prefix)) return;
+	const args = message.content
+		.slice(prefix.length)
+		.trim()
+		.split(/ +/g); 
+	const event = args.shift().toLowerCase();
+        client.commands.get('event').execute(client,event,args,message);
+
+})
+
 
 client.login(token);

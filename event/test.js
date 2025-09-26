@@ -1,11 +1,7 @@
-const { Events } = require('discord.js');
-const { prefix } = require('../config.json');
-
 module.exports = {
-	name: Events.MessageCreate,
-	async execute(message) {
-        if (message.author.bot || message.webhookId) return;
-		if (message.content.startsWith(prefix)) return;
+	name: "test",
+	description: 'メッセージをそのまま返す',
+    async execute(client,command,args,message){
         await message.reply(message.content);
 	},
 };
