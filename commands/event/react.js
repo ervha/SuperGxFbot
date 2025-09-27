@@ -11,11 +11,12 @@ module.exports = {
 		.addStringOption(option => 
 			option.setName('emoji')
 				.setDescription('追加するリアクションの絵文字（省略時はデフォルトの絵文字を使用）')
-				.setRequired(false)
+				.setRequired(true)
 				.addChoices(
-					{ name: 'デフォルト', value: '1420699809790033930' },
-					{ name: '👍', value: '👍' },
-					{ name: '👎', value: '👎' },
+					{ name: 'reiun', value: '1420699809790033930' },
+					{ name: 'green_container', value: '1421349684793970779' },
+					{ name: 'gold_container', value: '1421349677718310964' },
+					{ name: 'red_container', value: '1421349670365560913' },
 				)),
 
 	async execute(interaction) {

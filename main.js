@@ -50,30 +50,6 @@ for (const folder of commandFolders) {
 	}
 }
 
-console.log("イベントを読み込んでいます・・・");
-const eventPath = path.join(__dirname, 'event');
-const eventFiles = fs.readdirSync(eventPath)
-for (const file of eventFiles) {
-	const event = require(`./event/${file}`);
-	if (event.once) {
-		client.once(event.name, (...args) => event.execute(...args));
-	} else {
-		client.on(event.name, (...args) => event.execute(...args));
-	}
-}
 console.log(`ロードが完了しました。`)
-
-client.on("messageCreate", async message => {
-    if (message.author.bot || message.webhookId) return;
-    if (!message.content.startsWith(prefix)) return;
-	const args = message.content
-		.slice(prefix.length)
-		.trim()
-		.split(/ +/g); 
-	const event = args.shift().toLowerCase();
-        client.commands.get('event').execute(client,event,args,message);
-
-})
-
 
 client.login(token);
