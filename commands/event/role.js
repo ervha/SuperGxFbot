@@ -3,7 +3,7 @@ const { SlashCommandBuilder, MessageFlags, ButtonBuilder, ActionRowBuilder, Butt
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('role')
+        .setName('role-button')
         .setDescription('メッセージにボタンを追加して役職を付与/削除する')
         .addRoleOption(option => 
             option.setName('role')
@@ -28,12 +28,13 @@ module.exports = {
                 )),
 
     async execute(interaction) {
+        if (!interaction.isCommand()) return;
         await interaction.reply({ content: '操作を実行しました。', flags: MessageFlags.Ephemeral });
         const RoleId = interaction.options.getRole('role').id;
         const button_content = interaction.options.getString('button_content');
         const emoji = interaction.options.getString('emoji') || '1421349684793970779';
         const message_content = interaction.options.getString('message_content');
-        const Button = new ButtonBuilder()
+        const Role_Button = new ButtonBuilder()
             .setCustomId(`${BUTTON_ID_PREFIX}${RoleId}`)
             .setStyle(ButtonStyle.Primary)
             .setLabel(button_content)
@@ -43,7 +44,7 @@ module.exports = {
             content: message_content,
             components: [
                 new ActionRowBuilder()
-                    .setComponents(Button)
+                    .setComponents(Role_Button)
             ]
     	});
     }

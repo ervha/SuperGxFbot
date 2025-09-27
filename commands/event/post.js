@@ -10,6 +10,7 @@ module.exports = {
                 .setRequired(true)),
 
     async execute(interaction){
+        if (!interaction.isCommand()) return;
 		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 		const content = interaction.options.getString('message_content');
 			

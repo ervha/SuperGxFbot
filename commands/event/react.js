@@ -20,6 +20,7 @@ module.exports = {
 				)),
 
 	async execute(interaction) {
+        if (!interaction.isCommand()) return;
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const target_message_id = interaction.options.getString('message_id');
         const reaction_emoji = interaction.options.getString('emoji') || '1420699809790033930';

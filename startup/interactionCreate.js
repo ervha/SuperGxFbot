@@ -1,4 +1,5 @@
-const { Events, MessageFlags, PermissionsBitField } = require('discord.js');
+const { Events, MessageFlags } = require('discord.js');
+const roleButtonHandler = require('../button/role-button.js');
 
 module.exports = {
 	name: Events.InteractionCreate,
@@ -22,56 +23,34 @@ module.exports = {
 					await interaction.reply({ content: 'このコマンドの実行中にエラーが発生しました', flags: MessageFlags.Ephemeral });
 				}
 			}
-		}
-
-		if (interaction.isButton()){
-			const BUTTON_ID_PREFIX = "role_"
-			if (!interaction.customId.startsWith(BUTTON_ID_PREFIX)) return
-			const me = await interaction.guild.members.fetchMe()
-			if (!me.permissions.has(PermissionsBitField.Flags.ManageRoles)){
-				return interaction.reply({
-					content: "botに[ロールの管理]の権限がありません。サーバーの管理者に問い合わせてください。",
-					flags: MessageFlags.Ephemeral
-				})
-			}
-			const roleId = String(interaction.customId.slice(BUTTON_ID_PREFIX.length))
-			const roles = await interaction.guild.roles.fetch()
-			if (!roles.has(roleId)) {
-				return interaction.reply({
-					content: "ロールが存在しません。サーバーの管理者に問い合わせてください。",
-					flags: MessageFlags.Ephemeral
-				})
-			}
-			const role = roles.get(roleId)
-			const member = await interaction.member.fetch()
-			if (member.roles.cache.has(roleId)) {
+		} else if (interaction.isButton()){
+			if (interaction.customId.startsWith("role_")) {
 				try {
-					await member.roles.remove(role)
-					return interaction.reply({
-						content: `${role}を剥奪しました。`,
-					flags: MessageFlags.Ephemeral
-					})
+					await roleButtonHandler.execute(interaction);
 				} catch (error) {
-					console.error(error)
-					return interaction.reply({
-						content: `${role}の剥奪に失敗しました。`,
-					flags: MessageFlags.Ephemeral
-						})
+					console.error('Role button execution error:', error);
+					if (interaction.replied || interaction.deferred) {
+						await interaction.followUp({ content: '役職ボタンの実行中にエラーが発生しました', flags: MessageFlags.Ephemeral });
+					} else {
+						await interaction.reply({ content: '役職ボタンの実行中にエラーが発生しました', flags: MessageFlags.Ephemeral });
+					}
+				}
+			} else {
+				const button = interaction.client.buttons.get(interaction.buttonId);
+				if (button) {
+					try {
+						await button.execute(interaction);
+					} catch (error) {
+						if (interaction.replied || interaction.deferred) {
+							await interaction.followUp({ content: 'このボタンの実行中にエラーが発生しました', flags: MessageFlags.Ephemeral });
+						} else {
+							await interaction.reply({ content: 'このボタンの実行中にエラーが発生しました', flags: MessageFlags.Ephemeral });
+						}
+					}
 				}
 			}
-			try {
-				await member.roles.add(role)
-				return interaction.reply({
-					content: `${role}を付与しました。`,
-					flags: MessageFlags.Ephemeral
-				})
-			} catch (error) {
-				console.error(error)
-				return interaction.reply({
-					content: `${role}の付与に失敗しました。`,
-					flags: MessageFlags.Ephemeral
-				})
-			}
+		} else if (interaction.isStringSelectMenu()) {
+			// respond to the select menu
 		}
 	},
 };
