@@ -1,8 +1,12 @@
+const { prefix } = require('../config.json');
+
 module.exports = {
 	name: "test",
 	description: 'メッセージをそのまま返す',
     async execute(client,command,args,message){
-        await message.channel.send(message.content);
-		await message.delete();
+		const content = message.content.replace(`${prefix}${command}`,'');
+		if (!content) return;
+	        await message.channel.send(`${content}`);
+			await message.delete();
 	},
 };

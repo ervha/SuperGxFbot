@@ -1,10 +1,11 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ping')
 		.setDescription('Replies with Pong!'),
 	async execute(interaction) {
-		await interaction.reply(`Pong! ${interaction.client.ws.ping}ms`);
+		const sent = await interaction.deferReply( { withResponse: true, flags: MessageFlags.Ephemeral } );
+		await interaction.editReply(`Pong! ${sent.resource.message.createdTimestamp - interaction.createdTimestamp}ms`);
 	},
 };
