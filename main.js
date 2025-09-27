@@ -64,6 +64,7 @@ console.log(`ロードが完了しました。`)
 client.on("messageCreate", async message => {
     if (message.author.bot || message.webhookId) return;
     if (!message.content.startsWith(prefix)) return;
+	if (interaction.isChatInputCommand()) return;
 	const args = message.content
 		.slice(prefix.length)
 		.trim()
