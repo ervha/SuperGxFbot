@@ -54,17 +54,18 @@ console.log("イベントを読み込んでいます・・・");
 const eventPath = path.join(__dirname, 'event');
 const eventFiles = fs.readdirSync(eventPath)
 for (const file of eventFiles) {
-    //commandフォルダに入っているコマンドを読み込み
 	const event = require(`./event/${file}`);
-	//commandファイル内にあるname:でコマンドを読み込み
-        client.commands.set(event.name, event);
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
 }
 console.log(`ロードが完了しました。`)
 
 client.on("messageCreate", async message => {
     if (message.author.bot || message.webhookId) return;
     if (!message.content.startsWith(prefix)) return;
-	if (interaction.isChatInputCommand()) return;
 	const args = message.content
 		.slice(prefix.length)
 		.trim()
