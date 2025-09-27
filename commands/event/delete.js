@@ -2,7 +2,7 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("delete-react")
+        .setName("delete-test")
         .setDescription('リアクションでメッセージを削除する'),
     
     async execute(interaction){
