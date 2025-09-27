@@ -7,7 +7,7 @@ module.exports = {
     
     async execute(interaction){
         if (!interaction.isCommand()) return;
-        await interaction.reply({ content: '操作が完了しました。', ephemeral: true });
+        await interaction.reply({ content: '操作が完了しました。', flags: MessageFlags.Ephemeral });
         const sent = await interaction.channel.send({ content: '<:3587_20250619175247:1420699809790033930>' });
         const reaction = await sent.react('❌');
         

@@ -1,7 +1,7 @@
 const { Events, MessageFlags, PermissionsBitField } = require('discord.js');
 
 module.exports = {
-    name: Events.InteractionCreate,
+    name: 'role-button',
 
     async execute(interaction) {
         if (!interaction.isButton()) return;
