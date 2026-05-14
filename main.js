@@ -50,19 +50,6 @@ for (const folder of commandFolders) {
 	}
 }
 
-client.messages = new Collection();
-const messagesPath = path.join(__dirname, 'message');
-const messageFiles = fs.readdirSync(messagesPath).filter(file => file.endsWith('.js'));
-for (const file of messageFiles) {
-	const filePath = path.join(messagesPath, file);
-	const message = require(filePath);
-	if ('name' in message && 'execute' in message) {
-		client.messages.set(message.name, message);
-	} else {
-		console.log(`[WARNING] The message at ${filePath} is missing a required "name" or "execute" property.`);
-	}
-}
-
 console.log(`ロードが完了しました。`)
 
 client.login(token);
