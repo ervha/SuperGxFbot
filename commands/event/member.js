@@ -14,7 +14,7 @@ module.exports = {
 
     async execute(interaction){
         if (!interaction.isCommand()) return;
-		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+		await interaction.deferReply({ });
 		const content = interaction.options.getInteger('max_member');
 
         const filePath = path.join(__dirname, './maxMember.txt');
@@ -23,19 +23,17 @@ module.exports = {
 			
 		try {
 			if (!content) return;
-            if (!interaction.member.roles.cache.has(management_role_id)) return;
+            if (interaction.member.roles.cache.has(management_role_id)) {
+                try {
+                    await fs.writeFile(filePath, content.toString(), 'utf8');
+                } catch (err) {
+                    console.error('Error writing to file:', err);
+                }
 
-            try {
-                await fs.writeFile(filePath, content.toString(), 'utf8');
-            } catch (err) {
-                console.error('Error writing to file:', err);
-            }
-
-			await interaction.channel.send(`最大人数を${content}に設定しました。`);
-			await interaction.editReply({
-				content: `正常にメッセージを送信しました。`,
-				flags: MessageFlags.SuppressNotifications,
-			});
+                await interaction.editReply(`最大人数を${content}に設定しました。`);
+			} else {
+				await interaction.editReply(`権限が付与されていません`)
+			}
         } catch (error) {
             await interaction.editReply({
                 content: `エラーが発生しました。`,

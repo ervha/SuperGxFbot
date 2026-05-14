@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
+const {management_role_id} = require('../../config.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -13,7 +14,7 @@ module.exports = {
 
     async execute(interaction){
         if (!interaction.isCommand()) return;
-		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+		await interaction.deferReply({ });
 		const content = interaction.options.getInteger('tori_room_number');
 		const filePath = path.join(__dirname, './maxMember.txt');
 			
@@ -40,11 +41,7 @@ module.exports = {
 				}
 			}
 
-			await interaction.channel.send(`鳥が出た部屋：${content}、隣接部屋：${taiki.join(', ')}`);
-			await interaction.editReply({
-				content: `正常にメッセージを送信しました。`,
-				flags: MessageFlags.SuppressNotifications,
-			});
+			await interaction.editReply(`鳥が出た部屋：${content}、隣接部屋：${taiki.join(', ')}`);
         } catch (error) {
             await interaction.editReply({
                 content: `エラーが発生しました。`,

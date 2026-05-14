@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const {management_role_id} = require('../../config.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -7,14 +8,14 @@ module.exports = {
 
     async execute(interaction){
         if (!interaction.isCommand()) return;
-		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+		await interaction.deferReply({ });
 			
 		try {
-			await interaction.channel.send(`test`);
-			await interaction.editReply({
-				content: `正常にメッセージを送信しました。`,
-				flags: MessageFlags.SuppressNotifications
-			});
+			if (interaction.member.roles.cache.has(management_role_id)) {
+				await interaction.editReply(`これは試験中の機能です`);
+			} else {
+				await interaction.editReply(`権限が付与されていません`)
+			}			
         } catch (error) {
             await interaction.editReply({
                 content: `エラーが発生しました。`,
