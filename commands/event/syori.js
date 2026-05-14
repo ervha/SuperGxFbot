@@ -8,12 +8,9 @@ module.exports = {
     async execute(interaction){
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-		const content = interaction.options.getString('message_content');
 			
 		try {
-			if (!content) return;
-
-			await interaction.channel.send(`${content}`);
+			await interaction.channel.send(`test`);
 			await interaction.editReply({
 				content: `正常にメッセージを送信しました。`,
 				flags: MessageFlags.SuppressNotifications
