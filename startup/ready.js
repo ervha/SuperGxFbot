@@ -8,7 +8,7 @@ module.exports = {
 		await client.user.setActivity('hi!', { type: 'PLAYING' })
 
 		await console.log(`Ready! Logged in as ${client.user.tag}`);
-/**
+
 		try {
 			const loggingChannel = client.channels.cache.get(logging_channel_id);
 
@@ -20,6 +20,5 @@ module.exports = {
 		} catch (error) {
 			console.error('起動メッセージの送信中にエラーが発生しました:', error);
 		}
-*/
 	},
 };

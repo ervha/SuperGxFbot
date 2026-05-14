@@ -50,19 +50,6 @@ for (const folder of commandFolders) {
 	}
 }
 
-client.buttons = new Collection();
-const buttonsPath = path.join(__dirname, 'buttons');
-const buttonFiles = fs.readdirSync(buttonsPath).filter(file => file.endsWith('.js'));
-for (const file of buttonFiles) {
-	const filePath = path.join(buttonsPath, file);
-	const button = require(filePath);
-	if ('name' in button && 'execute' in button) {
-		client.buttons.set(button.name, button);
-	} else {
-		console.log(`[WARNING] The button at ${filePath} is missing a required "name" or "execute" property.`);
-	}
-}
-
 client.messages = new Collection();
 const messagesPath = path.join(__dirname, 'message');
 const messageFiles = fs.readdirSync(messagesPath).filter(file => file.endsWith('.js'));
@@ -73,19 +60,6 @@ for (const file of messageFiles) {
 		client.messages.set(message.name, message);
 	} else {
 		console.log(`[WARNING] The message at ${filePath} is missing a required "name" or "execute" property.`);
-	}
-}
-
-client.handlers = new Collection();
-const handlersPath = path.join(__dirname, 'handlers');
-const handlerFiles = fs.readdirSync(handlersPath).filter(file => file.endsWith('.js'));
-for (const file of handlerFiles) {
-	const filePath = path.join(handlersPath, file);
-	const handler = require(filePath);
-	if ('name' in handler && 'execute' in handler) {
-		client.handlers.set(handler.name, handler);
-	} else {
-		console.log(`[WARNING] The handler at ${filePath} is missing a required "name" or "execute" property.`);
 	}
 }
 
