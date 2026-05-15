@@ -11,14 +11,13 @@ module.exports = {
     async execute(interaction){
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
+		const filePath = path.join(__dirname, './txt/maxMember.txt');
+		const filePath2 = path.join(__dirname, './txt/room.txt')		
 			
 		try {
 			if (interaction.member.roles.cache.has(management_role_id)) {
 				try {
-					const filePath = path.join(__dirname, './txt/maxMember.txt');
-					const filePath2 = path.join(__dirname, './txt/room.txt')		
 					const data2 = await fs.readFile(filePath2, 'utf8')
-
 					const lines = data2.split('\n').filter(Boolean);
 					lines.shift();
 					await fs.writeFile(filePath2, lines.join('\n') + '\n', 'utf8');
@@ -52,8 +51,33 @@ module.exports = {
 						}
 					}
 
+					let taiki_copy = [...taiki];
+					let hoji_taiki = [];
+					let taiki_lengh = taiki_copy.length;
+
+					for (let i = 0; i < taiki_lengh; i++) {
+						if (taiki_copy.length === 0) break;
+						if (room_number_Array.includes(taiki_copy[i])) {
+							hoji_taiki.push(taiki_copy[i]);
+							taiki_copy.splice(i, 1);
+						}
+					}
+					taiki_lengh = taiki_copy.length;
+					for (let i = 0; i < taiki_lengh; i++) {
+						if (taiki_copy.length === 0) break;
+						{
+							hoji_taiki.push(taiki_copy[i]);
+							taiki_copy.splice(i, 1);
+						}
+					}
+
+					let hoji_taiki_string = "";
+					for (let i = 0; i < room_number_Array.length - 1; i++) {
+						hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（${hoji_taiki[i]}）**_`;
+					}
+
 					if (!(room_number_Array[0] == undefined)) {
-						await interaction.editReply(`部屋の処理を確認しました\n\n次に処理する部屋：**${room_number_Array[0]}**、待機する番号：**${taiki.join(', ')}**\n鳥が出ている残りの部屋：${nexts_room}`)
+						await interaction.editReply(`部屋の処理を確認しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
 					} else {
 						await interaction.editReply(`部屋の処理を確認しました\n処理待ちの部屋はありません`)
 					}

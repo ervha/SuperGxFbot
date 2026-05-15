@@ -55,7 +55,32 @@ module.exports = {
 				}
 			}
 
-			await interaction.editReply(`${content}の部屋を登録しました\n\n次に処理する部屋：**${room_number_Array[0]}**、待機する番号：**${taiki.join(', ')}**\n鳥が出ている残りの部屋：${nexts_room}`);
+			let taiki_copy = [...taiki];
+			let hoji_taiki = [];
+			let taiki_lengh = taiki_copy.length;
+
+			for (let i = 0; i < taiki_lengh; i++) {
+				if (taiki_copy.length === 0) break;
+				if (room_number_Array.includes(taiki_copy[i])) {
+					hoji_taiki.push(taiki_copy[i]);
+					taiki_copy.splice(i, 1);
+				}
+			}
+			taiki_lengh = taiki_copy.length;
+			for (let i = 0; i < taiki_lengh; i++) {
+				if (taiki_copy.length === 0) break;
+				{
+					hoji_taiki.push(taiki_copy[i]);
+					taiki_copy.splice(i, 1);
+				}
+			}
+
+			let hoji_taiki_string = "";
+			for (let i = 0; i < room_number_Array.length - 1; i++) {
+				hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（${hoji_taiki[i]}）**_`;
+			}
+
+			await interaction.editReply(`${content}の部屋を登録しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
         } catch (error) {
             await interaction.editReply({
                 content: `エラーが発生しました。`,
