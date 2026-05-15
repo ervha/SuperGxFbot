@@ -19,13 +19,13 @@ module.exports = {
 		const filePath = path.join(__dirname, './maxMember.txt');
 
 		const filePath2 = path.join(__dirname, './room.txt')		
-		const dir = path.dirname(filePath2);
+		const dir = path.dirname(filePath2, 'utf8');
 		await fs.mkdir(dir, { recursive: true });
 			
 		try {
 			if (!content) return;
 			
-			await fs.writeFile(filePath2, content.toString(), 'utf8');
+			await fs.appendFile(filePath2, `${content.toString()}\n`, 'utf8');
 
 			let maxMemberValue;
 			try {
