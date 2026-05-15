@@ -55,7 +55,7 @@ module.exports = {
 				}
 			}
 
-			await interaction.editReply(`${content}の部屋を登録しました\n\n次に処理する部屋：${room_number_Array[0]}、隣接部屋：${taiki.join(', ')}\n鳥が出ている残りの部屋：${nexts_room}`);
+			await interaction.editReply(`${content}の部屋を登録しました\n\n次に処理する部屋：${room_number_Array[0]}、待機する番号：${taiki.join(', ')}\n鳥が出ている残りの部屋：${nexts_room}`);
         } catch (error) {
             await interaction.editReply({
                 content: `エラーが発生しました。`,
