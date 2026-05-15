@@ -77,7 +77,7 @@ module.exports = {
 
 					let hoji_taiki_string = "";
 					for (let i = 0; i < nexts_room.length; i++) {
-						hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（${hoji_taiki[i]}）**_`;
+						hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（保持者：${hoji_taiki[i]}）**_\n`;
 					}
 
 					if (!(room_number_Array[0] == undefined)) {
