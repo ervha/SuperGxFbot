@@ -15,7 +15,7 @@ module.exports = {
     async execute(interaction){
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
-		const content = interaction.options.getInteger('tori_room_number');
+		const content = interaction.options.getInteger('room_number');
 		const filePath = path.join(__dirname, './txt/maxMember.txt');
 
 		const filePath2 = path.join(__dirname, './txt/room.txt')		
