@@ -56,22 +56,26 @@ module.exports = {
 			}
 
 			let taiki_copy = [...taiki];
-			let hoji_taiki = [];
-			let taiki_lengh = taiki_copy.length;
+			let hoji_taiki = new Array(nexts_room.length).fill(null);
 
-			for (let i = 0; i < taiki_lengh; i++) {
-				if (taiki_copy.length === 0) break;
-				if (room_number_Array.includes(taiki_copy[i])) {
-					hoji_taiki.push(taiki_copy[i]);
-					taiki_copy.splice(i, 1);
+			for (let i = 0; i < nexts_room.length; i++) {
+				let targetRoom = nexts_room[i];
+				let matchIndex = taiki_copy.indexOf(targetRoom);
+
+				if (matchIndex !== -1) {
+					hoji_taiki.push(taiki_copy[matchIndex]);
+					taiki_copy.splice(matchIndex, 1);
 				}
 			}
-			taiki_lengh = taiki_copy.length;
-			for (let i = 0; i < taiki_lengh; i++) {
-				if (taiki_copy.length === 0) break;
-				{
-					hoji_taiki.push(taiki_copy[i]);
-					taiki_copy.splice(i, 1);
+
+			for (let i = 0; i < nexts_room.length; i++) {
+				if (hoji_taiki[i] === null) {
+					if (taiki_copy.length > 0) {
+						hoji_taiki[i] = taiki_copy[0];
+						taiki_copy.splice(0, 1);
+					} else {
+						hoji_taiki[i] = "なし";
+					}
 				}
 			}
 
