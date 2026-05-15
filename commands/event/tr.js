@@ -33,6 +33,8 @@ module.exports = {
 										.filter(line => line !== "")
 										.map(Number);
 
+			
+			let current_room = room_number_Array[0];
 			let nexts_room = room_number_Array.slice(1);
 
 			let maxMemberValue;
@@ -44,9 +46,10 @@ module.exports = {
 			}
 
 			let taiki = [];
-			let taiki_room = maxMemberValue - 8;
+			let taiki_member = maxMemberValue - 8;
+			let taiki_room = nexts_room.length;
 
-			for  (let i = 1; i <= taiki_room; i++) {
+			for  (let i = 1; i <= taiki_member; i++) {
 				let room = room_number_Array[0] - i;
 				if (room_number_Array[0] - i <= 0) {
 					taiki.push(room + maxMemberValue);
@@ -63,7 +66,7 @@ module.exports = {
 				let matchIndex = taiki_copy.indexOf(targetRoom);
 
 				if (matchIndex !== -1) {
-					hoji_taiki.push(taiki_copy[matchIndex]);
+					hoji_taiki[i] = taiki_copy[matchIndex];
 					taiki_copy.splice(matchIndex, 1);
 				}
 			}
@@ -80,7 +83,7 @@ module.exports = {
 			}
 
 			let hoji_taiki_string = "";
-			for (let i = 0; i < room_number_Array.length - 1; i++) {
+			for (let i = 0; i < nexts_room.length; i++) {
 				hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（${hoji_taiki[i]}）**_`;
 			}
 
