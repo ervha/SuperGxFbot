@@ -16,7 +16,7 @@ module.exports = {
 			if (interaction.member.roles.cache.has(management_role_id)) {
 				await interaction.editReply(`これは試験中の機能です`);
 				try {
-					const filePath = path.join(__dirname, './room.txt')		
+					const filePath = path.join(__dirname, './txt/room.txt')		
 					const data = await fs.readFile(filePath, 'utf8')
 
 					const lines = data.split('\n').filter(Boolean);
