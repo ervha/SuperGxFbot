@@ -16,9 +16,9 @@ module.exports = {
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
 		const content = interaction.options.getInteger('tori_room_number');
-		const filePath = path.join(__dirname, './maxMember.txt');
+		const filePath = path.join(__dirname, './txt/maxMember.txt');
 
-		const filePath2 = path.join(__dirname, './room.txt')		
+		const filePath2 = path.join(__dirname, './txt/room.txt')		
 		const dir = path.dirname(filePath2, 'utf8');
 		await fs.mkdir(dir, { recursive: true });
 			

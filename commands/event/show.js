@@ -12,7 +12,7 @@ module.exports = {
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
         
-        const filePath = path.join(__dirname, './maxMember.txt');
+        const filePath = path.join(__dirname, './txt/maxMember.txt');
         const dir = path.dirname(filePath);
         await fs.mkdir(dir, { recursive: true });
 
