@@ -53,7 +53,7 @@ module.exports = {
 					}
 
 					if (!(room_number_Array[0] == undefined)) {
-						await interaction.editReply(`部屋の処理を確認しました\n\n次に処理する部屋：${room_number_Array[0]}、隣接部屋：${taiki.join(', ')}\n鳥が出ている残りの部屋：${nexts_room}`)
+						await interaction.editReply(`部屋の処理を確認しました\n\n次に処理する部屋：**${room_number_Array[0]}**、待機する番号：**${taiki.join(', ')}**\n鳥が出ている残りの部屋：${nexts_room}`)
 					} else {
 						await interaction.editReply(`部屋の処理を確認しました\n処理待ちの部屋はありません`)
 					}
