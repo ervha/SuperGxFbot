@@ -23,8 +23,30 @@ module.exports = {
 		await fs.mkdir(dir, { recursive: true });
 			
 		try {
-			if (!content || content <= 0) return;
-			
+			if (!content || content <= 0) { 
+				await interaction.editReply({
+					content: `エラー：有効な部屋番号を入力してください。${content}は無効です。`,
+					flags: MessageFlags.SuppressNotifications
+				});
+				return;
+			}
+
+			let maxMemberValue;
+			try {
+				const data2 = await fs.readFile(filePath, 'utf8');
+				maxMemberValue = parseInt(data2.trim(), 10);
+			} catch (error) {
+				maxMemberValue = 10;
+			}
+
+			if (maxMemberValue < content) {
+				await interaction.editReply({
+					content: `エラー：部屋番号は最大人数(${maxMemberValue})以下でなければなりません。${content}は無効です。`,
+					flags: MessageFlags.SuppressNotifications
+				});
+				return;
+			}
+
 			await fs.appendFile(filePath2, `${content.toString()}\n`, 'utf8');
 			const data = await fs.readFile(filePath2, 'utf8')
 
@@ -37,13 +59,6 @@ module.exports = {
 			let current_room = room_number_Array[0];
 			let nexts_room = room_number_Array.slice(1);
 
-			let maxMemberValue;
-			try {
-				const data2 = await fs.readFile(filePath, 'utf8');
-				maxMemberValue = parseInt(data2.trim(), 10);
-			} catch (error) {
-				maxMemberValue = 10;
-			}
 
 			let taiki = [];
 			let taiki_member = maxMemberValue - 8;
