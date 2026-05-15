@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const {management_role_id} = require('../../config.json');
+const {management_role_id, owner_role_id} = require('../../config.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -15,7 +15,7 @@ module.exports = {
 		const filePath2 = path.join(__dirname, './txt/room.txt')		
 			
 		try {
-			if (interaction.member.roles.cache.has(management_role_id)) {
+			if (interaction.member.roles.cache.has(management_role_id) || interaction.member.roles.cache.has(owner_role_id)) {
 				try {
 					const data2 = await fs.readFile(filePath2, 'utf8')
 					const lines = data2.split('\n').filter(Boolean);
