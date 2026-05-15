@@ -15,15 +15,48 @@ module.exports = {
 		try {
 			if (interaction.member.roles.cache.has(management_role_id)) {
 				try {
-					const filePath = path.join(__dirname, './txt/room.txt')		
-					const data = await fs.readFile(filePath, 'utf8')
+					const filePath = path.join(__dirname, './txt/maxMember.txt');
+					const filePath2 = path.join(__dirname, './txt/room.txt')		
+					const data2 = await fs.readFile(filePath2, 'utf8')
 
-					const lines = data.split('\n').filter(Boolean);
+					const lines = data2.split('\n').filter(Boolean);
 					lines.shift();
+					await fs.writeFile(filePath2, lines.join('\n') + '\n', 'utf8');
 
-					await fs.writeFile(filePath, lines.join('\n'), 'utf8');
+					const data3 = await fs.readFile(filePath2, 'utf8')
 
-					await interaction.editReply('部屋の処理を確認しました')
+					let room_number_Array = data3.split('\n')
+										.map(line => line.trim())
+										.filter(line => line !== "")
+										.map(Number);
+
+					let nexts_room = room_number_Array.slice(1);
+					
+					let maxMemberValue;
+					try {
+						const data = await fs.readFile(filePath, 'utf8');
+						maxMemberValue = parseInt(data.trim(), 10);
+					} catch (error) {
+						maxMemberValue = 10;
+					}
+
+					let taiki = [];
+					let taiki_room = maxMemberValue - 8;
+
+					for  (let i = 1; i <= taiki_room; i++) {
+						let room = room_number_Array[0] - i;
+						if (room_number_Array[0] - i <= 0) {
+							taiki.push(room + maxMemberValue);
+						} else {
+							taiki.push(room);
+						}
+					}
+
+					if (!(room_number_Array[0] == undefined)) {
+						await interaction.editReply(`部屋の処理を確認しました\n\n次に処理する部屋：${room_number_Array[0]}、隣接部屋：${taiki.join(', ')}\n鳥が出ている残りの部屋：${nexts_room}`)
+					} else {
+						await interaction.editReply(`部屋の処理を確認しました\n処理待ちの部屋はありません`)
+					}
 				} catch (err) {
 					await interaction.editReply('部屋の処理中にエラーが発生しました')
 				}
