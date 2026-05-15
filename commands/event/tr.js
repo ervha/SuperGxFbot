@@ -17,9 +17,15 @@ module.exports = {
 		await interaction.deferReply({ });
 		const content = interaction.options.getInteger('tori_room_number');
 		const filePath = path.join(__dirname, './maxMember.txt');
+
+		const filePath2 = path.join(__dirname, './room.txt')		
+		const dir = path.dirname(filePath2);
+		await fs.mkdir(dir, { recursive: true });
 			
 		try {
 			if (!content) return;
+			
+			await fs.writeFile(filePath2, content.toString(), 'utf8');
 
 			let maxMemberValue;
 			try {
