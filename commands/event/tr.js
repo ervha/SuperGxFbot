@@ -76,7 +76,7 @@ module.exports = {
 			let taiki_copy = [...taiki];
 			let hoji_taiki = new Array(nexts_room.length).fill(null);
 
-			for (let i = 0; i < taiki_member; i++) {
+			for (let i = 0; i < taiki_room; i++) {
 				let targetRoom = nexts_room[i];
 				let matchIndex = taiki_copy.indexOf(targetRoom);
 
@@ -89,24 +89,31 @@ module.exports = {
 			for (let i = 0; i < taiki_room; i++) {
 				if (hoji_taiki[i] === null) {
 					if (taiki_copy.length > 0) {
-						if (i == 0) {
-							if (nexts_room[i] == taiki_copy[0]) {
-								hoji_taiki[i] = taiki_copy[1];
-								taiki_copy.splice(1, 1);
-							} else if (nexts_room[i] == taiki_copy[1]) {
-								hoji_taiki[i] = taiki_copy[0];
-								taiki_copy.splice(0, 1);
+						let targetRoom = nexts_room[i];
+						let targetRoomNext = [];
+
+						for (let j = 1; j <= taiki.length; j++) {
+							let room = targetRoom - j;
+							if (room <= 0) {
+								targetRoomNext.push(room + maxMemberValue);
+							} else {
+								targetRoomNext.push(room);
+							}
+						}
+							let validIndex = taiki_copy.findIndex(room => !targetRoomNext.includes(room));
+
+							if (validIndex !== -1) {
+								hoji_taiki[i] = taiki_copy[validIndex];
+								taiki_copy.splice(validIndex, 1);
 							} else {
 								hoji_taiki[i] = taiki_copy[0];
 								taiki_copy.splice(0, 1);
 							}
-						} else {
-							hoji_taiki[i] = taiki_copy[0];
-							taiki_copy.splice(0, 1);
-						}
 					} else {
 						hoji_taiki[i] = "なし";
 					}
+				} else {
+					hoji_taiki[i] = "なし";
 				}
 			}
 
