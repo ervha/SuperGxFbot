@@ -89,8 +89,21 @@ module.exports = {
 			for (let i = 0; i < taiki_room; i++) {
 				if (hoji_taiki[i] === null) {
 					if (taiki_copy.length > 0) {
-						hoji_taiki[i] = taiki_copy[0];
-						taiki_copy.splice(0, 1);
+						if (i == 0) {
+							if (nexts_room[i] == taiki_copy[0]) {
+								hoji_taiki[i] = taiki_copy[1];
+								taiki_copy.splice(1, 1);
+							} else if (nexts_room[i] == taiki_copy[1]) {
+								hoji_taiki[i] = taiki_copy[0];
+								taiki_copy.splice(0, 1);
+							} else {
+								hoji_taiki[i] = taiki_copy[0];
+								taiki_copy.splice(0, 1);
+							}
+						} else {
+							hoji_taiki[i] = taiki_copy[0];
+							taiki_copy.splice(0, 1);
+						}
 					} else {
 						hoji_taiki[i] = "なし";
 					}
