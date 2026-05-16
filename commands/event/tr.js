@@ -76,7 +76,7 @@ module.exports = {
 			let taiki_copy = [...taiki];
 			let hoji_taiki = new Array(nexts_room.length).fill(null);
 
-			for (let i = 0; i < nexts_room.length; i++) {
+			for (let i = 0; i < taiki_member; i++) {
 				let targetRoom = nexts_room[i];
 				let matchIndex = taiki_copy.indexOf(targetRoom);
 
@@ -86,7 +86,7 @@ module.exports = {
 				}
 			}
 
-			for (let i = 0; i < nexts_room.length; i++) {
+			for (let i = 0; i < taiki_room; i++) {
 				if (hoji_taiki[i] === null) {
 					if (taiki_copy.length > 0) {
 						hoji_taiki[i] = taiki_copy[0];
@@ -98,7 +98,7 @@ module.exports = {
 			}
 
 			let hoji_taiki_string = "";
-			for (let i = 0; i < nexts_room.length; i++) {
+			for (let i = 0; i < taiki_room; i++) {
 				hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（保持者：${hoji_taiki[i]}）**_\n`;
 			}
 
