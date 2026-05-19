@@ -48,7 +48,7 @@ module.exports = {
 				let taiki_copy = [...taiki];
 				let hoji_taiki = new Array(nexts_room.length).fill(null);
 
-				for (let i = 0; i < nexts_room.length; i++) {
+				for (let i = 0; i < taiki_room; i++) {
 					let targetRoom = nexts_room[i];
 					let matchIndex = taiki_copy.indexOf(targetRoom);
 
@@ -58,11 +58,29 @@ module.exports = {
 					}
 				}
 
-				for (let i = 0; i < nexts_room.length; i++) {
+				for (let i = 0; i < taiki_room; i++) {
 					if (hoji_taiki[i] === null) {
 						if (taiki_copy.length > 0) {
-							hoji_taiki[i] = taiki_copy[0];
-							taiki_copy.splice(0, 1);
+							let targetRoom = nexts_room[i];
+							let targetRoomNext = [];
+
+							for (let j = 1; j <= taiki.length; j++) {
+								let room = targetRoom - j;
+								if (room <= 0) {
+									targetRoomNext.push(room + maxMemberValue);
+								} else {
+									targetRoomNext.push(room);
+								}
+							}
+								let validIndex = taiki_copy.findIndex(room => !targetRoomNext.includes(room));
+
+								if (validIndex !== -1) {
+									hoji_taiki[i] = taiki_copy[validIndex];
+									taiki_copy.splice(validIndex, 1);
+								} else {
+									hoji_taiki[i] = taiki_copy[0];
+									taiki_copy.splice(0, 1);
+								}
 						} else {
 							hoji_taiki[i] = "なし";
 						}
@@ -70,9 +88,9 @@ module.exports = {
 				}
 
 				let hoji_taiki_string = "";
-				for (let i = 0; i < nexts_room.length; i++) {
+				for (let i = 0; i < taiki_room; i++) {
 					hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（保持者：${hoji_taiki[i]}）**_\n`;
-				}
+			}
 
 				if (!(room_number_Array[0] == undefined)) {
 					await interaction.editReply(`次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)

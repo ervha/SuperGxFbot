@@ -90,8 +90,6 @@ module.exports = {
 							} else {
 								hoji_taiki[i] = "なし";
 							}
-						} else {
-							hoji_taiki[i] = "なし";
 						}
 					}
 
