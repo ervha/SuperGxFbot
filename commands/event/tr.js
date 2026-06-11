@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const {management_role_id, owner_role_id} = require('../../config.json');
+const {management_role_id, owner_role_id, api_token} = require('../../config.json');
+const axios = require('axios');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -46,6 +47,34 @@ module.exports = {
 				});
 				return;
 			}
+
+			let maxMemberValue_Check = [];
+			try {
+				const data_Check = await fs.readFile(filePath2, 'utf8');
+				maxMemberValue_Check = data_Check.split('\n')
+												.map(line => line.trim())
+												.filter(line => line !== "")
+												.map(Number);
+			} catch (error) {
+				// ファイルが存在しない場合は空配列のまま進む（安全）
+				maxMemberValue_Check = [];
+			}
+
+			if (maxMemberValue_Check.includes(content)) {
+				await interaction.editReply({
+					content: `エラー：その部屋番号は既に追加されています。${content}は無効です。`,
+					flags: MessageFlags.SuppressNotifications
+				});
+				return;
+			}
+
+			axios.post('https://gxf.reiun.com/api.php', {
+				action: 'add',
+				room_number: content.toString(),
+				api_key: api_token // 🔑 データの塊の中にパスワードを含めて送る
+			}, {
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+			}).catch(err => console.error('API追加エラー:', err.message));
 
 			await fs.appendFile(filePath2, `${content.toString()}\n`, 'utf8');
 			const data = await fs.readFile(filePath2, 'utf8')

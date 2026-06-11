@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const {management_role_id, owner_role_id} = require('../../config.json');
+const {management_role_id, owner_role_id, api_token} = require('../../config.json');
+const axios = require('axios');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -19,6 +20,18 @@ module.exports = {
 				try {
 					const data2 = await fs.readFile(filePath2, 'utf8')
 					const lines = data2.split('\n').filter(Boolean);
+
+					if (lines.length > 0) {
+						const removedRoom = lines[0].trim();
+						axios.post('https://gxf.reiun.com/api.php', {
+							action: 'delete',
+							room_number: removedRoom,
+							api_key: api_token 
+						}, {
+							headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+						}).catch(err => console.error('API削除エラー:', err.message));
+					}
+
 					lines.shift();
 					await fs.writeFile(filePath2, lines.join('\n') + '\n', 'utf8');
 
