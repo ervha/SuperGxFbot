@@ -3,6 +3,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const {management_role_id, owner_role_id, api_token} = require('../../config.json');
 const axios = require('axios');
+const { URLSearchParams } = require('url');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -18,9 +19,8 @@ module.exports = {
 		await interaction.deferReply({ });
 		const content = interaction.options.getInteger('room_number');
 		const filePath = path.join(__dirname, './txt/maxMember.txt');
-
-		const filePath2 = path.join(__dirname, './txt/room.txt')		
-		const dir = path.dirname(filePath2, 'utf8');
+		const filePath2 = path.join(__dirname, './txt/room.txt');
+		const dir = path.dirname(filePath2);
 		await fs.mkdir(dir, { recursive: true });
 			
 		try {
@@ -56,7 +56,6 @@ module.exports = {
 												.filter(line => line !== "")
 												.map(Number);
 			} catch (error) {
-				// ファイルが存在しない場合は空配列のまま進む（安全）
 				maxMemberValue_Check = [];
 			}
 
@@ -69,17 +68,15 @@ module.exports = {
 			}
 
 			await fs.appendFile(filePath2, `${content.toString()}\n`, 'utf8');
-			const data = await fs.readFile(filePath2, 'utf8')
+			const data = await fs.readFile(filePath2, 'utf8');
 
 			let room_number_Array = data.split('\n')
 										.map(line => line.trim())
 										.filter(line => line !== "")
 										.map(Number);
 
-			
 			let current_room = room_number_Array[0];
 			let nexts_room = room_number_Array.slice(1);
-
 
 			let taiki = [];
 			let taiki_member = maxMemberValue - 8;
@@ -121,15 +118,15 @@ module.exports = {
 								targetRoomNext.push(room);
 							}
 						}
-							let validIndex = taiki_copy.findIndex(room => !targetRoomNext.includes(room));
+						let validIndex = taiki_copy.findIndex(room => !targetRoomNext.includes(room));
 
-							if (validIndex !== -1) {
-								hoji_taiki[i] = taiki_copy[validIndex];
-								taiki_copy.splice(validIndex, 1);
-							} else {
-								hoji_taiki[i] = taiki_copy[0];
-								taiki_copy.splice(0, 1);
-							}
+						if (validIndex !== -1) {
+							hoji_taiki[i] = taiki_copy[validIndex];
+							taiki_copy.splice(validIndex, 1);
+						} else {
+							hoji_taiki[i] = taiki_copy[0];
+							taiki_copy.splice(0, 1);
+						}
 					} else {
 						hoji_taiki[i] = "なし";
 					}
@@ -143,16 +140,19 @@ module.exports = {
 
 			const webDisplayText = `次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`;
 
-			await axios.post('https://gxf.reiun.com/api.php', {
-				action: 'add',
-				room_number: '0',
-				display_text: webDisplayText,
-				api_key: api_token 
-			}, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
-			.catch(err => console.error('API追加エラー:', err.message));
+			const params = new URLSearchParams();
+			params.append('action', 'add');
+			params.append('room_number', '0');
+			params.append('display_text', webDisplayText);
+			params.append('api_key', api_token);
 
-			await interaction.editReply(`${content}の部屋を登録しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
+			await axios.post('https://gxf.reiun.com/api.php', params, {
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+			}).catch(err => console.error('API追加エラー:', err.message));
+
+			await interaction.editReply(`${content}の部屋を登録しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`);
         } catch (error) {
+			console.error(error);
             await interaction.editReply({
                 content: `エラーが発生しました。`,
                 flags: MessageFlags.SuppressNotifications
