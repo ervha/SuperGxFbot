@@ -21,15 +21,9 @@ module.exports = {
 					const data2 = await fs.readFile(filePath2, 'utf8')
 					const lines = data2.split('\n').filter(Boolean);
 
+					let removedRoom = null;
 					if (lines.length > 0) {
-						const removedRoom = lines[0].trim();
-						axios.post('https://gxf.reiun.com/api.php', {
-							action: 'delete',
-							room_number: removedRoom,
-							api_key: api_token 
-						}, {
-							headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-						}).catch(err => console.error('API削除エラー:', err.message));
+						removedRoom = lines[0].trim();
 					}
 
 					lines.shift();
@@ -41,6 +35,26 @@ module.exports = {
 										.map(line => line.trim())
 										.filter(line => line !== "")
 										.map(Number);
+
+					if (removedRoom) {
+						await axios.post('https://gxf.reiun.com/api.php', {
+							action: 'delete',
+							room_number: removedRoom.toString(),
+							api_key: api_token
+						}, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+						.catch(err => console.error('API削除エラー:', err.message));
+					}
+
+					if (room_number_Array.length === 0 || room_number_Array[0] == undefined) {
+						// Webサーバー側の部屋テーブルを一旦すべてクリアする
+						await axios.post('https://gxf.reiun.com/api.php', {
+							action: 'update_all',
+							api_key: api_token
+						}, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }).catch(err => console.error(err));
+
+						await interaction.editReply(`部屋の処理を確認しました\n処理待ちの部屋はありません`);
+						return;
+					}
 
 					let nexts_room = room_number_Array.slice(1);
 					
@@ -77,7 +91,7 @@ module.exports = {
 						}
 					}
 
-					for (let i = 0; i < taiki_room; i++) {
+					for (let i = 0; i < nexts_room.length; i++) {
 						if (hoji_taiki[i] === null) {
 							if (taiki_copy.length > 0) {
 								let targetRoom = nexts_room[i];
@@ -111,11 +125,17 @@ module.exports = {
 						hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（保持者：${hoji_taiki[i]}）**_\n`;
 					}
 
-					if (!(room_number_Array[0] == undefined)) {
-						await interaction.editReply(`部屋の処理を確認しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
-					} else {
-						await interaction.editReply(`部屋の処理を確認しました\n処理待ちの部屋はありません`)
-					}
+					const webDisplayText = `次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`;
+
+					await axios.post('https://gxf.reiun.com/api.php', {
+						action: 'add',
+						room_number: '0',
+						display_text: webDisplayText,
+						api_key: api_token
+					}, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+					.catch(err => console.error('API追加エラー:', err.message));
+
+					await interaction.editReply(`部屋の処理を確認しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
 				} catch (err) {
 					await interaction.editReply('部屋の処理中にエラーが発生しました')
 				}

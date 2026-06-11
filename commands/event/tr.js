@@ -68,14 +68,6 @@ module.exports = {
 				return;
 			}
 
-			axios.post('https://gxf.reiun.com/api.php', {
-				action: 'add',
-				room_number: content.toString(),
-				api_key: api_token // 🔑 データの塊の中にパスワードを含めて送る
-			}, {
-				headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-			}).catch(err => console.error('API追加エラー:', err.message));
-
 			await fs.appendFile(filePath2, `${content.toString()}\n`, 'utf8');
 			const data = await fs.readFile(filePath2, 'utf8')
 
@@ -148,6 +140,16 @@ module.exports = {
 			for (let i = 0; i < taiki_room; i++) {
 				hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（保持者：${hoji_taiki[i]}）**_\n`;
 			}
+
+			const webDisplayText = `次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`;
+
+			await axios.post('https://gxf.reiun.com/api.php', {
+				action: 'add',
+				room_number: '0',
+				display_text: webDisplayText,
+				api_key: api_token 
+			}, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+			.catch(err => console.error('API追加エラー:', err.message));
 
 			await interaction.editReply(`${content}の部屋を登録しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
         } catch (error) {
