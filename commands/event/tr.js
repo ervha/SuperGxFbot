@@ -32,6 +32,8 @@ module.exports = {
 				return;
 			}
 
+			let addroom = content;
+
 			let maxMemberValue;
 			try {
 				const data2 = await fs.readFile(filePath, 'utf8');
@@ -142,15 +144,15 @@ module.exports = {
 
 			const params = new URLSearchParams();
 			params.append('action', 'add');
-			params.append('room_number', '0');
+			params.append('room_number', addroom.toString());
 			params.append('display_text', webDisplayText);
 			params.append('api_key', api_token);
 
-			await axios.post('https://gxf.reiun.com/api.php', params, {
+			axios.post('https://gxf.reiun.com/api.php', params, {
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
 			}).catch(err => console.error('API追加エラー:', err.message));
 
-			await interaction.editReply(`${content}の部屋を登録しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`);
+			await interaction.editReply(`${addroom}の部屋を登録しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`);
         } catch (error) {
 			console.error(error);
             await interaction.editReply({

@@ -53,7 +53,7 @@ module.exports = {
 						clearParams.append('action', 'update_all');
 						clearParams.append('api_key', api_token);
 
-						await axios.post('https://gxf.reiun.com/api.php', clearParams, {
+						axios.post('https://gxf.reiun.com/api.php', clearParams, {
 							headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
 						}).catch(err => console.error(err));
 
@@ -138,7 +138,7 @@ module.exports = {
 					addParams.append('display_text', webDisplayText);
 					addParams.append('api_key', api_token);
 
-					await axios.post('https://gxf.reiun.com/api.php', addParams, {
+					axios.post('https://gxf.reiun.com/api.php', addParams, {
 						headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
 					}).catch(err => console.error('API追加エラー:', err.message));
 
