@@ -43,7 +43,7 @@ module.exports = {
 						delParams.append('room_number', removedRoom.toString());
 						delParams.append('api_key', api_token);
 
-						await axios.post('https://gxf.reiun.com/api.php', delParams, {
+						axios.post('https://gxf.reiun.com/api.php', delParams, {
 							headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
 						}).catch(err => console.error('API削除エラー:', err.message));
 					}
