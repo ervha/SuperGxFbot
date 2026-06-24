@@ -18,8 +18,8 @@ module.exports = {
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
 		const content = interaction.options.getInteger('room_number');
-		const filePath = path.join(__dirname, './txt/maxMember.txt');
-		const filePath2 = path.join(__dirname, './txt/room.txt');
+		const filePath = path.join(__dirname, './json/bot-config.json');
+		const filePath2 = path.join(__dirname, './json/room.json');
 		const dir = path.dirname(filePath2);
 		await fs.mkdir(dir, { recursive: true });
 			
@@ -34,10 +34,10 @@ module.exports = {
 
 			let addroom = content;
 
-			let maxMemberValue;
+			let maxMemberValue = 10;
 			try {
 				const data2 = await fs.readFile(filePath, 'utf8');
-				maxMemberValue = parseInt(data2.trim(), 10);
+				maxMemberValue = JSON.parse(data2).max_member;
 			} catch (error) {
 				maxMemberValue = 10;
 			}
@@ -50,16 +50,14 @@ module.exports = {
 				return;
 			}
 
-			let maxMemberValue_Check = [];
+			let roomsData = [];
 			try {
 				const data_Check = await fs.readFile(filePath2, 'utf8');
-				maxMemberValue_Check = data_Check.split('\n')
-												.map(line => line.trim())
-												.filter(line => line !== "")
-												.map(Number);
+				roomsData = JSON.parse(data_Check).rooms || [];
 			} catch (error) {
-				maxMemberValue_Check = [];
+				roomsData = [];
 			}
+			let maxMemberValue_Check = roomsData.map(room => room.room_number);
 
 			if (maxMemberValue_Check.includes(content)) {
 				await interaction.editReply({
@@ -69,13 +67,10 @@ module.exports = {
 				return;
 			}
 
-			await fs.appendFile(filePath2, `${content.toString()}\n`, 'utf8');
-			const data = await fs.readFile(filePath2, 'utf8');
+			roomsData.push({ room_number: content });
+			await fs.writeFile(filePath2, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
 
-			let room_number_Array = data.split('\n')
-										.map(line => line.trim())
-										.filter(line => line !== "")
-										.map(Number);
+			let room_number_Array = roomsData.map(room => room.room_number);
 
 			let current_room = room_number_Array[0];
 			let nexts_room = room_number_Array.slice(1);

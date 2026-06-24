@@ -13,29 +13,30 @@ module.exports = {
     async execute(interaction){
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
-		const filePath = path.join(__dirname, './txt/maxMember.txt');
-		const filePath2 = path.join(__dirname, './txt/room.txt');		
+		const filePath = path.join(__dirname, './json/bot-config.json');
+		const filePath2 = path.join(__dirname, './json/room.json');		
 			
 		try {
 			if (interaction.member.roles.cache.has(management_role_id) || interaction.member.roles.cache.has(owner_role_id)) {
 				try {
-					const data2 = await fs.readFile(filePath2, 'utf8');
-					const lines = data2.split('\n').filter(Boolean);
 
-					let removedRoom = null;
-					if (lines.length > 0) {
-						removedRoom = lines[0].trim();
+					let roomsData = [];
+					try {
+						const data2 = await fs.readFile(filePath2, 'utf8');
+						roomsData = JSON.parse(data2).rooms || [];
+					} catch (error) {
+						roomsData = [];
 					}
 
-					lines.shift();
-					await fs.writeFile(filePath2, lines.join('\n') + '\n', 'utf8');
+					let removedRoom = null;
+					if (roomsData.length > 0) {
+						const firstroom = roomsData.shift();
+						removedRoom = firstroom.room_number;
+					}
 
-					const data3 = await fs.readFile(filePath2, 'utf8');
+					await fs.writeFile(filePath2, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
 
-					let room_number_Array = data3.split('\n')
-										.map(line => line.trim())
-										.filter(line => line !== "")
-										.map(Number);
+					let room_number_Array = roomsData.map(room => room.room_number);
 
 					if (removedRoom) {
 						const delParams = new URLSearchParams();
@@ -72,10 +73,10 @@ module.exports = {
 
 					let nexts_room = room_number_Array.slice(1);
 					
-					let maxMemberValue;
+					let maxMemberValue = 10;
 					try {
 						const data = await fs.readFile(filePath, 'utf8');
-						maxMemberValue = parseInt(data.trim(), 10);
+						maxMemberValue = JSON.parse(data).max_member;
 					} catch (error) {
 						maxMemberValue = 10;
 					}

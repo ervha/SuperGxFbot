@@ -11,24 +11,32 @@ module.exports = {
     async execute(interaction){
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
-		const filePath = path.join(__dirname, './txt/maxMember.txt');
-		const filePath2 = path.join(__dirname, './txt/room.txt')		
+		const filePath = path.join(__dirname, './json/bot-config.json');
+		const filePath2 = path.join(__dirname, './json/room.json')		
 			
 		try {
 			try {
-				const data2 = await fs.readFile(filePath2, 'utf8')
+				let roomsData = [];
+				try {
+					const data2 = await fs.readFile(filePath2, 'utf8');
+					roomsData = JSON.parse(data2).rooms || [];
+				} catch (error) {
+					roomsData = [];
+				}
 
-				let room_number_Array = data2.split('\n')
-									.map(line => line.trim())
-									.filter(line => line !== "")
-									.map(Number);
+				let room_number_Array = roomsData.map(room => room.room_number);
+
+				if (room_number_Array.length === 0 || room_number_Array[0] == undefined) {
+					await interaction.editReply(`現在処理中の部屋はありません`)
+					return;
+				}
 
 				let nexts_room = room_number_Array.slice(1);
 				
-				let maxMemberValue;
+				let maxMemberValue = 10;
 				try {
 					const data = await fs.readFile(filePath, 'utf8');
-					maxMemberValue = parseInt(data.trim(), 10);
+					maxMemberValue = JSON.parse(data).max_member || 10;
 				} catch (error) {
 					maxMemberValue = 10;
 				}
@@ -88,8 +96,8 @@ module.exports = {
 				}
 
 				let hoji_taiki_string = "";
-				for (let i = 0; i < taiki_room; i++) {
-					hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（保持者：${hoji_taiki[i]}）**_\n`;
+				for (let i = 0; i < nexts_room.length; i++) {
+					hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（保持者：${hoji_taiki[i] || "なし"}）**_\n`;
 			}
 
 				if (!(room_number_Array[0] == undefined)) {

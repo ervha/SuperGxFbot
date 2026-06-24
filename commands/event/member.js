@@ -17,15 +17,19 @@ module.exports = {
 		await interaction.deferReply({ });
 		const content = interaction.options.getInteger('max_member');
 
-        const filePath = path.join(__dirname, './txt/maxMember.txt');
+        const filePath = path.join(__dirname, './json/bot-config.json');
         const dir = path.dirname(filePath);
         await fs.mkdir(dir, { recursive: true });
 			
 		try {
-			if (!content) return;
             if (interaction.member.roles.cache.has(management_role_id) || interaction.member.roles.cache.has(owner_role_id)) {
+
+                const maxMenberData = {
+                    max_member: content
+                }
+
                 try {
-                    await fs.writeFile(filePath, content.toString(), 'utf8');
+                    await fs.writeFile(filePath, JSON.stringify(maxMenberData, null, 2), 'utf8');
                 } catch (err) {
                     console.error('Error writing to file:', err);
                 }

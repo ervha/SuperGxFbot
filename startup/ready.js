@@ -14,11 +14,6 @@ module.exports = {
 		try {
 			const loggingChannel = client.channels.cache.get(logging_channel_id);
 
-			const filePath = path.join(__dirname, '../commands/event/txt/room.txt')		
-			const dir = path.dirname(filePath, 'utf8');
-			await fs.mkdir(dir, { recursive: true });
-			await fs.writeFile(filePath, '', 'utf8')
-
 			if (loggingChannel) {
 				await loggingChannel.send(`✅ Botを起動しました`);
 			} else {
