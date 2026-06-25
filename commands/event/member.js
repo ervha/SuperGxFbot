@@ -24,15 +24,21 @@ module.exports = {
 		try {
             if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
 
-                const maxMenberData = {
-                    max_member: content
-                }
+				let currentConfig = {};
+				try {
+                    const existingData = await fs.readFile(filePath, 'utf8');
+                    currentConfig = JSON.parse(existingData);
+                } catch (e) {
+                    currentConfig = {};
+				}
+				const dataToSave = {
+                    maxMember: content,
+                    stats: currentConfig.stats || {
+                        todayCount: 0
+                    }
+                };
 
-                try {
-                    await fs.writeFile(filePath, JSON.stringify(maxMenberData, null, 2), 'utf8');
-                } catch (err) {
-                    console.error('Error writing to file:', err);
-                }
+                await fs.writeFile(filePath, JSON.stringify(dataToSave, null, 2), 'utf8');
 
                 await interaction.editReply(`最大人数を${content}に設定しました。`);
 			} else {
