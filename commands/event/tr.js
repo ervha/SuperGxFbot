@@ -53,7 +53,7 @@ module.exports = {
 			let roomsData = [];
 			try {
 				const data_Check = await fs.readFile(filePath2, 'utf8');
-				roomsData = JSON.parse(data_Check);
+				roomsData = JSON.parse(data_Check).rooms || [];
 			} catch (error) {
 				roomsData = [];
 			}

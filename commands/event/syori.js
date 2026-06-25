@@ -23,7 +23,7 @@ module.exports = {
 					let roomsData = [];
 					try {
 						const data2 = await fs.readFile(filePath2, 'utf8');
-						roomsData = JSON.parse(data2);
+						roomsData = JSON.parse(data2).rooms || [];
 					} catch (error) {
 						roomsData = [];
 					}
@@ -66,6 +66,7 @@ module.exports = {
 						}).catch(err => console.error('APIステータス更新エラー:', err.message));
 
 						await interaction.editReply(`部屋の処理を確認しました\n処理待ちの部屋はありません`);
+						await fs.writeFile(filePath2, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
 						return;
 					}
 

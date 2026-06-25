@@ -19,14 +19,14 @@ module.exports = {
 				let roomsData = [];
 				try {
 					const data2 = await fs.readFile(filePath2, 'utf8');
-					roomsData = JSON.parse(data2);
+					roomsData = JSON.parse(data2).rooms || [];
 				} catch (error) {
 					roomsData = [];
 				}
 
 				if (roomsData.length === 0) {
-				await interaction.editReply(`現在処理中の部屋はありません`);
-				return;
+					await interaction.editReply(`現在処理中の部屋はありません`);
+					return;
 				}
 
 				let currentroom = roomsData[0];
@@ -44,8 +44,8 @@ module.exports = {
 				let taiki_room = maxMemberValue - 8;
 
 				for  (let i = 1; i <= taiki_room; i++) {
-					let room = room_number_Array[0] - i;
-					if (room_number_Array[0] - i <= 0) {
+					let room = currentroom.room_number - i;
+					if (room <= 0) {
 						taiki.push(room + maxMemberValue);
 					} else {
 						taiki.push(room);
@@ -54,13 +54,12 @@ module.exports = {
 
 				let hoji_taiki_string = "";
 				for (let i = 0; i < nexts_room.length; i++) {
-					hoji_taiki_string += `保持する部屋：_**${nexts_room[i].room}（保持者：${nexrs_room[i].holder || "なし"}）**_\n`;
-			}
-
-			await interaction.editReply(`次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
+					hoji_taiki_string += `保持する部屋：_**${nexts_room[i].room_number}（保持者：${nexts_room[i].holder || "なし"}）**_\n`;
+				}
+				await interaction.editReply(`次に処理する部屋：_**${currentroom.room_number}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
 
 			} catch (err) {
-				await interaction.editReply('部屋の処理中にエラーが発生しました')
+				await interaction.editReply('部屋の確認中にエラーが発生しました')
 			}
         } catch (error) {
             await interaction.editReply({
