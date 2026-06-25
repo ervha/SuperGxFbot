@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const { management_role_id, ownerid } = require('../../config.json');
+const { management_role_id, ownerId } = require('../../config.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
