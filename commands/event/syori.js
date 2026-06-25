@@ -23,7 +23,7 @@ module.exports = {
 					let roomsData = [];
 					try {
 						const data2 = await fs.readFile(filePath2, 'utf8');
-						roomsData = JSON.parse(data2).rooms || [];
+						roomsData = JSON.parse(data2);
 					} catch (error) {
 						roomsData = [];
 					}
@@ -33,8 +33,6 @@ module.exports = {
 						const firstroom = roomsData.shift();
 						removedRoom = firstroom.room_number;
 					}
-
-					await fs.writeFile(filePath2, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
 
 					let room_number_Array = roomsData.map(room => room.room_number);
 
@@ -135,6 +133,13 @@ module.exports = {
 						}
 					}
 
+					roomsData[0].holder = "処理中";
+					for (let i = 0; i < nexts_room.length; i++) {
+						roomsData[i + 1].holder = hoji_taiki[i];
+					}
+
+					await fs.writeFile(filePath2, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
+					
 					let hoji_taiki_string = "";
 					for (let i = 0; i < nexts_room.length; i++) {
 						hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（保持者：${hoji_taiki[i]}）**_\n`;
