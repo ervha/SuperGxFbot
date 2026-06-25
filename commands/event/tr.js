@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const {management_role_id, owner_role_id, api_token} = require('../../config.json');
+const {management_role_id, ownerId, api_token} = require('../../config.json');
 const axios = require('axios');
 const { URLSearchParams } = require('url');
 

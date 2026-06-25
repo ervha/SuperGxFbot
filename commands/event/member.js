@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const {management_role_id, owner_role_id} = require('../../config.json');
+const {management_role_id, ownerId} = require('../../config.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -22,7 +22,7 @@ module.exports = {
         await fs.mkdir(dir, { recursive: true });
 			
 		try {
-            if (interaction.member.roles.cache.has(management_role_id) || interaction.member.roles.cache.has(owner_role_id)) {
+            if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
 
                 const maxMenberData = {
                     max_member: content

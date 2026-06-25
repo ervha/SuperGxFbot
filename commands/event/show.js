@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const {management_role_id, owner_role_id} = require('../../config.json');
+const {management_role_id, ownerId} = require('../../config.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -19,7 +19,7 @@ module.exports = {
 		try {
 			const data = await fs.readFile(filePath, 'utf8');
 			const maxMemberValue = Number(JSON.parse(data).max_member);
-			if (interaction.member.roles.cache.has(management_role_id) || interaction.member.roles.cache.has(owner_role_id)) {
+			if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
 				await interaction.editReply(`現在の最大人数は${maxMemberValue}です。`);
 			} else {
 				await interaction.editReply(`権限が付与されていません`)
