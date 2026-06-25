@@ -34,8 +34,6 @@ module.exports = {
 						removedRoom = firstroom.room_number;
 					}
 
-					let room_number_Array = roomsData.map(room => room.room_number);
-
 					if (removedRoom) {
 						const delParams = new URLSearchParams();
 						delParams.append('action', 'delete');
@@ -47,21 +45,7 @@ module.exports = {
 						}).catch(err => console.error('API削除エラー:', err.message));
 					}
 
-					try {
-						const maxMemberData = await fs.readFile(filePath, 'utf8');
-						const maxMemberConfig = JSON.parse(maxMemberData);
-						if (!maxMemberConfig.stats) {
-							maxMemberConfig.stats = { todayCount: 0 };
-						}
-						if (removedRoom) {
-							maxMemberConfig.stats.todayCount += 1;
-						}
-						await fs.writeFile(filePath, JSON.stringify(maxMemberConfig, null, 2), 'utf8');
-					} catch (statsError) {
-						console.error('統計更新エラー:', statsError);
-					}
-
-					if (room_number_Array.length === 0 || room_number_Array[0] == undefined) {
+					if (roomsData.length === 0) {
 						const clearParams = new URLSearchParams();
 						clearParams.append('action', 'update_all');
 						clearParams.append('api_key', api_token);
@@ -83,8 +67,6 @@ module.exports = {
 						await fs.writeFile(filePath2, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
 						return;
 					}
-
-					let nexts_room = room_number_Array.slice(1);
 					
 					let maxMemberValue = 10;
 					try {
@@ -93,6 +75,10 @@ module.exports = {
 					} catch (error) {
 						maxMemberValue = 10;
 					}
+					
+					let room_number_Array = roomsData.map(room => room.room_number);
+					
+					let nexts_room = room_number_Array.slice(1);
 
 					let taiki = [];
 					let taiki_room = maxMemberValue - 8;
@@ -161,15 +147,6 @@ module.exports = {
 					}
 
 					const webDisplayText = `次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`;
-
-					const addParams = new URLSearchParams();
-					addParams.append('action', 'add');
-					addParams.append('room_number', '0');
-					addParams.append('api_key', api_token);
-
-					axios.post('https://gxf.reiun.com/api.php', addParams, {
-						headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-					}).catch(err => console.error('API追加エラー:', err.message));
 					
 					const statusParams = new URLSearchParams();
 					statusParams.append('action', 'update_status'); // 新しいアクション名

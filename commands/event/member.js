@@ -23,19 +23,8 @@ module.exports = {
 			
 		try {
             if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
-
-				let currentConfig = {};
-				try {
-                    const existingData = await fs.readFile(filePath, 'utf8');
-                    currentConfig = JSON.parse(existingData);
-                } catch (e) {
-                    currentConfig = {};
-				}
 				const dataToSave = {
                     maxMember: content,
-                    stats: currentConfig.stats || {
-                        todayCount: 0
-                    }
                 };
 
                 await fs.writeFile(filePath, JSON.stringify(dataToSave, null, 2), 'utf8');
