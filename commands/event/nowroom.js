@@ -19,19 +19,18 @@ module.exports = {
 				let roomsData = [];
 				try {
 					const data2 = await fs.readFile(filePath2, 'utf8');
-					roomsData = JSON.parse(data2).rooms || [];
+					roomsData = JSON.parse(data2);
 				} catch (error) {
 					roomsData = [];
 				}
 
-				let room_number_Array = roomsData.map(room => room.room_number);
-
-				if (room_number_Array.length === 0 || room_number_Array[0] == undefined) {
-					await interaction.editReply(`現在処理中の部屋はありません`)
-					return;
+				if (roomsData.length === 0) {
+				await interaction.editReply(`現在処理中の部屋はありません`);
+				return;
 				}
 
-				let nexts_room = room_number_Array.slice(1);
+				let currentroom = roomsData[0];
+				let nexts_room = roomsData.slice(1);
 				
 				let maxMemberValue = 10;
 				try {
@@ -53,58 +52,13 @@ module.exports = {
 					}
 				}
 
-				let taiki_copy = [...taiki];
-				let hoji_taiki = new Array(nexts_room.length).fill(null);
-
-				for (let i = 0; i < taiki_room; i++) {
-					let targetRoom = nexts_room[i];
-					let matchIndex = taiki_copy.indexOf(targetRoom);
-
-					if (matchIndex !== -1) {
-						hoji_taiki[i] = taiki_copy[matchIndex];
-						taiki_copy.splice(matchIndex, 1);
-					}
-				}
-
-				for (let i = 0; i < taiki_room; i++) {
-					if (hoji_taiki[i] === null) {
-						if (taiki_copy.length > 0) {
-							let targetRoom = nexts_room[i];
-							let targetRoomNext = [];
-
-							for (let j = 1; j <= taiki.length; j++) {
-								let room = targetRoom - j;
-								if (room <= 0) {
-									targetRoomNext.push(room + maxMemberValue);
-								} else {
-									targetRoomNext.push(room);
-								}
-							}
-								let validIndex = taiki_copy.findIndex(room => !targetRoomNext.includes(room));
-
-								if (validIndex !== -1) {
-									hoji_taiki[i] = taiki_copy[validIndex];
-									taiki_copy.splice(validIndex, 1);
-								} else {
-									hoji_taiki[i] = taiki_copy[0];
-									taiki_copy.splice(0, 1);
-								}
-						} else {
-							hoji_taiki[i] = "なし";
-						}
-					}
-				}
-
 				let hoji_taiki_string = "";
 				for (let i = 0; i < nexts_room.length; i++) {
-					hoji_taiki_string += `保持する部屋：_**${nexts_room[i]}（保持者：${hoji_taiki[i] || "なし"}）**_\n`;
+					hoji_taiki_string += `保持する部屋：_**${nexts_room[i].room}（保持者：${nexrs_room[i].holder || "なし"}）**_\n`;
 			}
 
-				if (!(room_number_Array[0] == undefined)) {
-					await interaction.editReply(`次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
-				} else {
-					await interaction.editReply(`現在処理中の部屋はありません`)
-				}
+			await interaction.editReply(`次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
+
 			} catch (err) {
 				await interaction.editReply('部屋の処理中にエラーが発生しました')
 			}
