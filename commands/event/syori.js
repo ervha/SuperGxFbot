@@ -47,6 +47,20 @@ module.exports = {
 						}).catch(err => console.error('API削除エラー:', err.message));
 					}
 
+					try {
+						const maxMemberData = await fs.readFile(filePath, 'utf8');
+						const maxMemberConfig = JSON.parse(maxMemberData);
+						if (!maxMemberConfig.stats) {
+							maxMemberConfig.stats = { todayCount: 0 };
+						}
+						if (removedRoom) {
+							maxMemberConfig.stats.todayCount += 1;
+						}
+						await fs.writeFile(filePath, JSON.stringify(maxMemberConfig, null, 2), 'utf8');
+					} catch (statsError) {
+						console.error('統計更新エラー:', statsError);
+					}
+
 					if (room_number_Array.length === 0 || room_number_Array[0] == undefined) {
 						const clearParams = new URLSearchParams();
 						clearParams.append('action', 'update_all');
