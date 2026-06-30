@@ -29,7 +29,7 @@ module.exports = {
 		const filePath2 = path.join(__dirname, './json/room.json');
 
 		try {
-			if (!interaction.member.roles.cache.has(management_role_id) && !interaction.user.id === ownerId) {
+			if (!interaction.member.roles.cache.has(management_role_id) || !interaction.user.id === ownerId) {
 				await interaction.editReply(`権限が付与されていません`);
 				return;
 			}
