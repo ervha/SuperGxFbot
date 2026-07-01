@@ -2,7 +2,7 @@ const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, Act
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('bosyu')
+		.setName('quest')
 		.setDescription('新規クエストの募集モーダルを開きます'),
 
 	async execute(interaction) {

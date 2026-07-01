@@ -47,7 +47,7 @@ module.exports = {
 			const allowOverflow = overFlowSetting.toLowerCase() !== 'off';
 			const mentionRole = mentionRoleInput.toLowerCase() !== 'off';
 
-			const filePath = path.join(__dirname, '../commands/json/bosyu.json');
+			const filePath = path.join(__dirname, '../commands/json/quest.json');
 
 			try {
 				let bosyuData = [];

@@ -5,7 +5,7 @@ const { management_role_id, ownerId } = require('../../config.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('bosyu-edit')
+		.setName('quest-edit')
 		.setDescription('【管理者用】クエスト募集枠の参加状況を編集・管理します')
 		.addStringOption(option =>
 			option.setName('message_id')
@@ -27,7 +27,7 @@ module.exports = {
 				.setRequired(false)),
 
 	async autocomplete(interaction) {
-		const filePath = path.join(__dirname, '../json/bosyu.json');
+		const filePath = path.join(__dirname, '../json/quests.json');
 		let bosyuData = [];
 		try {
 			const raw = await fs.readFile(filePath, 'utf8');
@@ -56,7 +56,7 @@ module.exports = {
 			const actionType = interaction.options.getString('action_type');
 			const targetUser = interaction.options.getUser('target_user');
 
-			const filePath = path.join(__dirname, '../json/bosyu.json');
+			const filePath = path.join(__dirname, '../json/quest.json');
 
 			try {
 				let bosyuData = [];
