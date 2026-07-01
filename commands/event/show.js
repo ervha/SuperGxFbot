@@ -12,12 +12,12 @@ module.exports = {
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
         
-        const filePath = path.join(__dirname, './json/bot-config.json');
-        const dir = path.dirname(filePath);
+        const config_filePath = path.join(__dirname, './json/bot-config.json');
+        const dir = path.dirname(config_filePath);
         await fs.mkdir(dir, { recursive: true });
 
 		try {
-			const data = await fs.readFile(filePath, 'utf8');
+			const data = await fs.readFile(config_filePath, 'utf8');
 			const maxMemberValue = Number(JSON.parse(data).max_member);
 			if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
 				await interaction.editReply(`現在の最大人数は${maxMemberValue}です。`);

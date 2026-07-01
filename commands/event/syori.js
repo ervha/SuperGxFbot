@@ -13,8 +13,8 @@ module.exports = {
     async execute(interaction){
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
-		const filePath = path.join(__dirname, './json/bot-config.json');
-		const filePath2 = path.join(__dirname, './json/room.json');		
+		const config_filePath = path.join(__dirname, './json/bot-config.json');
+		const rooms_filePath = path.join(__dirname, './json/room.json');		
 			
 		try {
 			if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
@@ -22,7 +22,7 @@ module.exports = {
 
 					let roomsData = [];
 					try {
-						const data2 = await fs.readFile(filePath2, 'utf8');
+						const data2 = await fs.readFile(rooms_filePath, 'utf8');
 						roomsData = JSON.parse(data2).rooms || [];
 					} catch (error) {
 						roomsData = [];
@@ -64,13 +64,13 @@ module.exports = {
 						}).catch(err => console.error('APIステータス更新エラー:', err.message));
 
 						await interaction.editReply(`部屋の処理を確認しました\n処理待ちの部屋はありません`);
-						await fs.writeFile(filePath2, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
+						await fs.writeFile(rooms_filePath, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
 						return;
 					}
 					
 					let maxMemberValue = 10;
 					try {
-						const data = await fs.readFile(filePath, 'utf8');
+						const data = await fs.readFile(config_filePath, 'utf8');
 						maxMemberValue = JSON.parse(data).max_member;
 					} catch (error) {
 						maxMemberValue = 10;
@@ -139,7 +139,7 @@ module.exports = {
 						roomsData[i + 1].holder = hoji_taiki[i];
 					}
 
-					await fs.writeFile(filePath2, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
+					await fs.writeFile(rooms_filePath, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
 					
 					let hoji_taiki_string = "";
 					for (let i = 0; i < nexts_room.length; i++) {

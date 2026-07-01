@@ -17,8 +17,8 @@ module.exports = {
 		await interaction.deferReply({ });
 		const content = interaction.options.getInteger('max_member');
 
-        const filePath = path.join(__dirname, './json/bot-config.json');
-        const dir = path.dirname(filePath);
+        const config_filePath = path.join(__dirname, './json/bot-config.json');
+        const dir = path.dirname(config_filePath);
         await fs.mkdir(dir, { recursive: true });
 			
 		try {
@@ -27,7 +27,7 @@ module.exports = {
                     maxMember: content,
                 };
 
-                await fs.writeFile(filePath, JSON.stringify(dataToSave, null, 2), 'utf8');
+                await fs.writeFile(config_filePath, JSON.stringify(dataToSave, null, 2), 'utf8');
 
                 await interaction.editReply(`最大人数を${content}に設定しました。`);
 			} else {

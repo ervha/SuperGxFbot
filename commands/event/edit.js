@@ -25,8 +25,8 @@ module.exports = {
 		const position = interaction.options.getInteger('position');
 		const newRoomNumber = interaction.options.getInteger('newroom_number');
 
-		const filePath = path.join(__dirname, './json/bot-config.json');
-		const filePath2 = path.join(__dirname, './json/room.json');
+		const config_filePath = path.join(__dirname, './json/bot-config.json');
+		const rooms_filePath = path.join(__dirname, './json/room.json');
 
 		try {
 			if (!interaction.member.roles.cache.has(management_role_id) || !interaction.user.id === ownerId) {
@@ -41,7 +41,7 @@ module.exports = {
 
 			let roomsData = [];
 			try {
-				const data2 = await fs.readFile(filePath2, 'utf8');
+				const data2 = await fs.readFile(rooms_filePath, 'utf8');
 				roomsData = JSON.parse(data2).rooms || [];
 			} catch (error) {
 				roomsData = [];
@@ -62,7 +62,7 @@ module.exports = {
 
 			let maxMemberValue = 10;
 			try {
-				const data = await fs.readFile(filePath, 'utf8');
+				const data = await fs.readFile(config_filePath, 'utf8');
 				const maxMemberConfig = JSON.parse(data);
 				maxMemberValue = maxMemberConfig.max_member || 10;
 			} catch (error) {
@@ -139,7 +139,7 @@ module.exports = {
 				roomsData[i + 1].holder = hoji_taiki[i];
 			}
 
-			await fs.writeFile(filePath2, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
+			await fs.writeFile(rooms_filePath, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
 
 			const editParams = new URLSearchParams();
 			editParams.append('action', 'edit');

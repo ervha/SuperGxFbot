@@ -11,14 +11,14 @@ module.exports = {
     async execute(interaction){
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
-		const filePath = path.join(__dirname, './json/bot-config.json');
-		const filePath2 = path.join(__dirname, './json/room.json')		
+		const config_filePath = path.join(__dirname, './json/bot-config.json');
+		const rooms_filePath = path.join(__dirname, './json/room.json')		
 			
 		try {
 			try {
 				let roomsData = [];
 				try {
-					const data2 = await fs.readFile(filePath2, 'utf8');
+					const data2 = await fs.readFile(rooms_filePath, 'utf8');
 					roomsData = JSON.parse(data2).rooms || [];
 				} catch (error) {
 					roomsData = [];
@@ -34,7 +34,7 @@ module.exports = {
 				
 				let maxMemberValue = 10;
 				try {
-					const data = await fs.readFile(filePath, 'utf8');
+					const data = await fs.readFile(config_filePath, 'utf8');
 					maxMemberValue = JSON.parse(data).max_member || 10;
 				} catch (error) {
 					maxMemberValue = 10;
