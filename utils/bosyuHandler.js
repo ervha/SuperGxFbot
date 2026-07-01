@@ -1,3 +1,4 @@
+const { EmbedBuilder } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -14,7 +15,7 @@ async function handleBosyuReaction(reaction, user, isAdd) {
 
 	if (reaction.emoji.name !== '✅') return;
 
-	const filePath = path.join(__dirname, '../commands/json/quest.json');
+	const filePath = path.join(__dirname, '../commands/json/quests.json');
 
 	try {
 		let bosyuData = [];
@@ -54,18 +55,17 @@ async function handleBosyuReaction(reaction, user, isAdd) {
 			await fs.writeFile(filePath, JSON.stringify(bosyuData, null, 2), 'utf8');
 
 			const listStr = currentBosyu.participants.map(id => `<@${id}>`).join(', ') || 'なし';
-			const contentLines = reaction.message.content.split('\n');
 
-			let updatedContent = '';
-			for (let line of contentLines) {
-				if (line.startsWith('参加者一覧')) {
-					updatedContent += `参加者一覧 (${currentBosyu.participants.length}/${currentBosyu.maxSlots}):\n${listStr}`;
-					break;
+			const updatedEmbed = EmbedBuilder.from(reaction.message.embeds[0]);
+			const fields = updatedEmbed.data.fields.map(f => {
+				if (f.name.startsWith('参加者一覧')) {
+					return { name: `参加者一覧 (${currentBosyu.participants.length}/${currentBosyu.maxSlots})`, value: listStr, inline: false };
 				}
-				updatedContent += line + '\n';
-			}
+				return f;
+			});
+			updatedEmbed.setFields(fields);
 
-			await reaction.message.edit({ content: updatedContent.trim() });
+			await reaction.message.edit({ embeds: [updatedEmbed] });
 		}
 	} catch (error) {
 		console.error('リアクションハンドラーエラー:', error);

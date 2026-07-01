@@ -1,4 +1,4 @@
-const { Events, MessageFlags } = require('discord.js');
+const { Events, MessageFlags, EmbedBuilder } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
 const { QUEST_ROLE_IDS } = require('../config.json');
@@ -47,15 +47,15 @@ module.exports = {
 			const allowOverflow = overFlowSetting.toLowerCase() !== 'off';
 			const mentionRole = mentionRoleInput.toLowerCase() !== 'off';
 
-			const filePath = path.join(__dirname, '../commands/json/quest.json');
+			const filePath = path.join(__dirname, '../commands/json/quests.json');
 
 			try {
-				let bosyuData = [];
+				let questData = [];
 				try {
 					const raw = await fs.readFile(filePath, 'utf8');
-					bosyuData = JSON.parse(raw);
+					questData = JSON.parse(raw);
 				} catch (e) {
-					bosyuData = [];
+					questData = [];
 				}
 
 				const roleId = QUEST_ROLE_IDS[questType];
@@ -74,12 +74,29 @@ module.exports = {
 				} else {
 					mentionPrefix = '';
 				}
-				const message = await interaction.channel.send(`${mentionPrefix}\n【新規クエスト募集】\n\n${datailStr}\n\n${participantsList}`);
+
+				const embed = new EmbedBuilder()
+					.setTitle('【新規クエスト募集】')
+					.setDescription(`クエスト種類: ${questType}`)
+					.setColor(0x00AE86)
+					.addFields(
+						{ name: 'クエスト名・目的・開催日時', value: questOption, inline: false },
+						{ name: '募集人数', value: `${slots}人`, inline: true },
+						{ name: '追加参加設定', value: overflowText, inline: false },
+						{ name: '募集者', value: `<@${interaction.user.id}>`, inline: false },
+						{ name: `参加者一覧 (0/${slots})`, value: 'なし', inline: false }
+					)
+					.setTimestamp();
+
+				const message = await interaction.channel.send({
+					content: mentionPrefix ? `${mentionPrefix}` : null,
+					embeds: [embed]
+				});
 
 				await message.react('✅').catch((error) => {
 					console.error('Failed to react to message:', error);
 				});
-				bosyuData.push({
+				questData.push({
 					messageId: message.id,
 					channelId: message.channel.id,
 					authorId: interaction.user.id,
@@ -91,7 +108,7 @@ module.exports = {
 					participants: [],
 				});
 
-				await fs.writeFile(filePath, JSON.stringify(bosyuData, null, 2), 'utf8');
+				await fs.writeFile(filePath, JSON.stringify(questData, null, 2), 'utf8');
 				await interaction.reply({ content: '募集メッセージを送信しました。', flags: MessageFlags.Ephemeral });
 			} catch (error) {
 				console.error('Error occurred while handling modal submit:', error);
