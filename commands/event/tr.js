@@ -18,8 +18,8 @@ module.exports = {
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
 		const content = interaction.options.getInteger('room_number');
-		const config_filePath = path.join(__dirname, './json/bot-config.json');
-		const rooms_filePath = path.join(__dirname, './json/room.json');
+		const config_filePath = path.join(__dirname, '../json/bot-config.json');
+		const rooms_filePath = path.join(__dirname, '../json/room.json');
 		const dir = path.dirname(rooms_filePath);
 		await fs.mkdir(dir, { recursive: true });
 			

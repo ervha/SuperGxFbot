@@ -13,8 +13,8 @@ module.exports = {
     async execute(interaction){
         if (!interaction.isCommand()) return;
 		await interaction.deferReply({ });
-		const config_filePath = path.join(__dirname, './json/bot-config.json');
-		const rooms_filePath = path.join(__dirname, './json/room.json');		
+		const config_filePath = path.join(__dirname, '../json/bot-config.json');
+		const rooms_filePath = path.join(__dirname, '../json/room.json');		
 			
 		try {
 			if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {

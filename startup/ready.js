@@ -1,13 +1,11 @@
-const { Events } = require('discord.js');
+const { Events, ActivityType } = require('discord.js');
 const { logging_channel_id } = require('../config.json');
-const fs = require('fs').promises;
-const path = require('path');
 
 module.exports = {
 	name: Events.ClientReady,
 	once: true,
 	async execute(client) {
-		await client.user.setActivity('hi!', { type: 'PLAYING' })
+		client.user.setActivity('hi!', { type: ActivityType.Playing });
 
 		await console.log(`Ready! Logged in as ${client.user.tag}`);
 

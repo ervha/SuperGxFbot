@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 const { token, prefix } = require('./config.json');
 const client = new Client({
     intents: [
@@ -14,7 +14,15 @@ const client = new Client({
         GatewayIntentBits.MessageContent
     ],
    disableMentions: 'everyone',
+    partials: [
+		Partials.Channel,
+		Partials.GuildMember,
+		Partials.Message,
+		Partials.Reaction,
+		Partials.User],
 });
+
+client.prefix = prefix;
 
 console.log("スタートアップファイルを読み込んでいます・・・");
 const startupPath = path.join(__dirname, 'startup');

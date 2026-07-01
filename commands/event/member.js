@@ -17,14 +17,14 @@ module.exports = {
 		await interaction.deferReply({ });
 		const content = interaction.options.getInteger('max_member');
 
-        const config_filePath = path.join(__dirname, './json/bot-config.json');
+        const config_filePath = path.join(__dirname, '../json/bot-config.json');
         const dir = path.dirname(config_filePath);
         await fs.mkdir(dir, { recursive: true });
 			
 		try {
             if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
 				const dataToSave = {
-                    maxMember: content,
+                    max_member: content,
                 };
 
                 await fs.writeFile(config_filePath, JSON.stringify(dataToSave, null, 2), 'utf8');
