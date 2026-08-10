@@ -31,6 +31,7 @@ const startupPath = path.join(__dirname, 'startup');
 const startupFiles = fs.readdirSync(startupPath).filter(file => file.endsWith('.js'));
 
 Http.createServer(function(req, res) {
+        console.log('Ping received!');
 	res.write("OK");
 	res.end();
 }).listen(port, '0.0.0.0', () => {
