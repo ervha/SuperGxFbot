@@ -1,4 +1,4 @@
-const { handleBosyuReaction } = require('../utils/bosyuHandler.js');
+const { handleBosyuReaction } = require('../src/bosyuHandler.js');
 
 module.exports = {
 	name: 'messageReactionAdd',
