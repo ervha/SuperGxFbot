@@ -1,5 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const Http = require('http');
+const port = process.env.PORT || 3000;
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 const { token, prefix } = require('./config.json');
 const client = new Client({
@@ -27,6 +29,13 @@ client.prefix = prefix;
 console.log("スタートアップファイルを読み込んでいます・・・");
 const startupPath = path.join(__dirname, 'startup');
 const startupFiles = fs.readdirSync(startupPath).filter(file => file.endsWith('.js'));
+
+Http.createServer(function(req, res) {
+	res.write("OK");
+	res.end();
+}).listen(port, '0.0.0.0', () => {
+	console.log(`Web server is runnning on port ${port}`);
+});
 
 for (const file of startupFiles) {
 	const filePath = path.join(startupPath, file);
