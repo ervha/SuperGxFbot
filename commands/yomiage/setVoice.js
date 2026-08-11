@@ -45,10 +45,13 @@ module.exports = {
     const buildMessageOptions = (page) => {
       const start = page * 25;
       const end = start + 25;
-      const currentOptions = allOptions.slice(start, end).map(opt => ({
-        ...opt,
-        default: opt.value === String(userSetting.speaker_id)
-      }));
+      const currentOptions = allOptions.slice(start, end).map(opt => {
+        const isCurrent = opt.value === String(userSetting.speaker_id);
+        return {
+          ...opt,
+          description: isCurrent ? `${opt.description} (現在選択中)` : opt.description,
+        };
+      });
 
       const selectMenu = new StringSelectMenuBuilder()
         .setCustomId('select_voice_speaker')
