@@ -147,7 +147,10 @@ module.exports = {
 				editParams.append('api_key', api_token);
 
 				await axios.post('https://gxf.reiun.com/api.php', editParams, {
-					headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+						'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+					}
 				}).catch(err => console.error('API修正エラー:', err.message));
 
 				let hoji_taiki_string = "";
@@ -163,7 +166,10 @@ module.exports = {
 				statusParams.append('api_key', api_token);
 
 				axios.post('https://gxf.reiun.com/api.php', statusParams, {
-					headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+						'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+					}
 				}).catch(err => console.error('APIステータス更新エラー:', err.message));
 
 				let info_string = "";

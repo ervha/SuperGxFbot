@@ -42,7 +42,10 @@ module.exports = {
 						delParams.append('api_key', api_token);
 
 						axios.post('https://gxf.reiun.com/api.php', delParams, {
-							headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+							headers: {
+								'Content-Type': 'application/x-www-form-urlencoded',
+								'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+							}
 						}).catch(err => console.error('API削除エラー:', err.message));
 					}
 
@@ -52,7 +55,10 @@ module.exports = {
 						clearParams.append('api_key', api_token);
 
 						axios.post('https://gxf.reiun.com/api.php', clearParams, {
-							headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+							headers: {
+								'Content-Type': 'application/x-www-form-urlencoded',
+								'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+							}
 						}).catch(err => console.error(err));
 
 						const statusParams = new URLSearchParams();
@@ -61,7 +67,10 @@ module.exports = {
 						statusParams.append('api_key', api_token);
 
 						axios.post('https://gxf.reiun.com/api.php', statusParams, {
-							headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+							headers: {
+								'Content-Type': 'application/x-www-form-urlencoded',
+								'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+							}
 						}).catch(err => console.error('APIステータス更新エラー:', err.message));
 
 						await interaction.editReply(`部屋の処理を確認しました\n処理待ちの部屋はありません`);
@@ -155,7 +164,10 @@ module.exports = {
 					statusParams.append('api_key', api_token);
 
 					axios.post('https://gxf.reiun.com/api.php', statusParams, {
-						headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded',
+							'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+						}
 					}).catch(err => console.error('APIステータス更新エラー:', err.message));
 
 					await interaction.editReply(`部屋の処理を確認しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`);
