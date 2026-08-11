@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const Http = require('http');
 require('dotenv').config();
-const { token, prefix } = process.env;
+const { token } = process.env;
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 const client = new Client({
 	intents: [
@@ -23,8 +23,6 @@ const client = new Client({
 		Partials.Reaction,
 		Partials.User],
 });
-
-client.prefix = prefix;
 
 console.log("スタートアップファイルを読み込んでいます・・・");
 const startupPath = path.join(__dirname, 'startup');

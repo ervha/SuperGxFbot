@@ -1,2 +1,3 @@
 @echo off
-node ..\main.js
+cd /d %~dp0..
+node main.js
