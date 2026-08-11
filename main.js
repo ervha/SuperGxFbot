@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const Http = require('http');
 require('dotenv').config();
-const { token, prefix, port } = process.env;
+const { token, prefix } = process.env;
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 const client = new Client({
 	intents: [
@@ -29,14 +29,6 @@ client.prefix = prefix;
 console.log("スタートアップファイルを読み込んでいます・・・");
 const startupPath = path.join(__dirname, 'startup');
 const startupFiles = fs.readdirSync(startupPath).filter(file => file.endsWith('.js'));
-
-Http.createServer(function (req, res) {
-	console.log('Ping received!');
-	res.write("OK");
-	res.end();
-}).listen(port, '0.0.0.0', () => {
-	console.log(`Web server is runnning on port ${port}`);
-});
 
 for (const file of startupFiles) {
 	const filePath = path.join(startupPath, file);
