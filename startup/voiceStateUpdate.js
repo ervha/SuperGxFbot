@@ -21,7 +21,17 @@ module.exports = {
         if (oldChannel) {
           const nonBotMembers = oldChannel.members.filter(m => !m.user.bot);
           if (nonBotMembers.size === 0) {
+            // 誰もいなくなった場合は退出
             audioPlayer.leaveChannel(guildId);
+          } else {
+            // 他の人が残っている場合は退室メッセージを読み上げ
+            const serverSetting = dataManager.getServerSetting(guildId);
+            if (serverSetting.join_notice_enabled) {
+              const displayName = oldState.member.displayName;
+              const noticeText = `${displayName}さんが退室しました`;
+              const userSetting = dataManager.getUserSetting(oldState.member.id);
+              audioPlayer.enqueueText(guildId, noticeText, userSetting);
+            }
           }
         }
       }

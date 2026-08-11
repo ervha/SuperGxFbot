@@ -16,7 +16,7 @@ const apiClient = axios.create({
 
 const CACHE_DIR = path.join(__dirname, '../audio_cache');
 const SYSTEM_CACHE_DIR = path.join(__dirname, '../audio_cache/system');
-const MAX_CACHE_SIZE = 1000;
+const MAX_CACHE_SIZE = 3000;
 
 if (!fs.existsSync(CACHE_DIR)) {
   fs.mkdirSync(CACHE_DIR, { recursive: true });
@@ -33,7 +33,10 @@ async function cleanUpOldCache() {
   try {
     const files = await fsp.readdir(CACHE_DIR);
     const wavFiles = files.filter(f => f.endsWith('.wav'));
-    if (wavFiles.length <= MAX_CACHE_SIZE) return;
+
+    // 毎回全ファイルの更新日時をチェックするとディスクI/Oがパンクするため、
+    // MAX_CACHE_SIZEを100個オーバーするまでクリーンアップをスキップする
+    if (wavFiles.length <= MAX_CACHE_SIZE + 100) return;
 
     const statPromises = wavFiles.map(async (file) => {
       const filePath = path.join(CACHE_DIR, file);
@@ -44,6 +47,7 @@ async function cleanUpOldCache() {
     const fileStats = await Promise.all(statPromises);
     fileStats.sort((a, b) => a.mtime - b.mtime);
 
+    // 一気に100個消す
     const excess = fileStats.length - MAX_CACHE_SIZE;
     for (let i = 0; i < excess; i++) {
       await fsp.unlink(fileStats[i].file).catch(() => { });

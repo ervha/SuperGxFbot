@@ -17,22 +17,27 @@ function resampleWavToRaw(wavBuffer) {
   const dataOffset = 44;
   if (wavBuffer.length <= dataOffset) return Buffer.alloc(0);
 
-  const pcmLength = wavBuffer.length - dataOffset;
-  const outBuffer = Buffer.alloc(pcmLength * 4);
+  const numSamples = (wavBuffer.length - dataOffset) / 2;
+  // Node.jsのBufferの基盤となるArrayBufferを直接Int16Arrayとしてビュー（参照）する
+  const inArray = new Int16Array(wavBuffer.buffer, wavBuffer.byteOffset + dataOffset, numSamples);
   
-  let outOffset = 0;
-  let prevSample = wavBuffer.readInt16LE(dataOffset);
-
-  for (let i = dataOffset; i < wavBuffer.length; i += 2) {
-    const currentSample = wavBuffer.readInt16LE(i);
-    const midSample = Math.round((prevSample + currentSample) / 2);
+  // メモリのゼロ埋めをスキップ（高速化）
+  const outBuffer = Buffer.allocUnsafe(numSamples * 8);
+  const outArray = new Int16Array(outBuffer.buffer, outBuffer.byteOffset, numSamples * 4);
+  
+  let prevSample = inArray[0];
+  let outIdx = 0;
+  
+  for (let i = 0; i < numSamples; i++) {
+    const currentSample = inArray[i];
+    // Math.roundや除算を避け、ビットシフト演算(>>1)で超高速に中間値を計算
+    const midSample = (prevSample + currentSample) >> 1;
     
-    outBuffer.writeInt16LE(midSample, outOffset);       // Left
-    outBuffer.writeInt16LE(midSample, outOffset + 2);   // Right
-    outBuffer.writeInt16LE(currentSample, outOffset + 4); // Left
-    outBuffer.writeInt16LE(currentSample, outOffset + 6); // Right
+    outArray[outIdx++] = midSample;       // Left (interpolated)
+    outArray[outIdx++] = midSample;       // Right (interpolated)
+    outArray[outIdx++] = currentSample;   // Left (actual)
+    outArray[outIdx++] = currentSample;   // Right (actual)
     
-    outOffset += 8;
     prevSample = currentSample;
   }
   
@@ -120,25 +125,46 @@ function leaveChannel(guildId) {
   }
 }
 
-function enqueueText(guildId, text, userSetting) {
+function ensurePreGeneration(guildId) {
   const manager = guildManagers.get(guildId);
-  if (!manager) return false;
+  if (!manager || manager.queue.length === 0) return;
 
+  // キューの中からまだ生成開始していない最初のアイテムを探す
+  const ungeneratedItem = manager.queue.find(item => !item.audioPromise);
+  if (!ungeneratedItem) return; // 全て生成中または生成済み
+
+  // 現在生成中のアイテムがあるか確認（Voicevoxへの同時リクエストを防ぐため1つずつ処理）
+  const isGenerating = manager.queue.some(item => item.isGenerating);
+  if (isGenerating) return;
+
+  ungeneratedItem.isGenerating = true;
   const serverSetting = dataManager.getServerSetting(guildId);
 
-  const audioPromise = voicevox.generateAudio(
-    text,
-    userSetting.speaker_id,
-    userSetting.pitch,
-    userSetting.speed,
-    userSetting.intonation,
+  ungeneratedItem.audioPromise = voicevox.generateAudio(
+    ungeneratedItem.text,
+    ungeneratedItem.userSetting.speaker_id,
+    ungeneratedItem.userSetting.pitch,
+    ungeneratedItem.userSetting.speed,
+    ungeneratedItem.userSetting.intonation,
     serverSetting.volume
   ).catch(error => {
     console.error(`Pre-generation failed for guild ${guildId}:`, error.message);
     return null;
+  }).finally(() => {
+    ungeneratedItem.isGenerating = false;
+    // 次のチャンクがあれば続けて生成を開始する
+    ensurePreGeneration(guildId);
   });
+}
 
-  manager.queue.push({ audioPromise });
+function enqueueText(guildId, text, userSetting) {
+  const manager = guildManagers.get(guildId);
+  if (!manager) return false;
+
+  manager.queue.push({ text, userSetting, audioPromise: null, isGenerating: false });
+  
+  // 事前生成ループをキック
+  ensurePreGeneration(guildId);
 
   if (!manager.isPlaying) {
     playNext(guildId);
@@ -156,6 +182,11 @@ async function playNext(guildId) {
   const item = manager.queue.shift();
 
   try {
+    // 生成が終わるまで待機
+    if (!item.audioPromise) {
+       // 万が一Promiseがまだない場合は即座に生成開始（通常はensurePreGenerationで開始済み）
+       ensurePreGeneration(guildId);
+    }
     const wavBuffer = await item.audioPromise;
 
     if (!wavBuffer) {

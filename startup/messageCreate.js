@@ -28,14 +28,51 @@ function normalizeText(content, guild, dictionary) {
 
   if (dictionary && dictionary.length > 0) {
     for (const item of dictionary) {
-      if (item.word && item.reading) {
-        const regex = new RegExp(item.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-        text = text.replace(regex, item.reading);
+      if (item.regex && item.reading) {
+        text = text.replace(item.regex, item.reading);
       }
     }
   }
 
   return text.trim();
+}
+
+function advancedChunkText(text) {
+  // 1. まずは明確な区切り（句読点、記号、空白）で分割
+  const initialChunks = text.match(/([^。！？\n、，\s　]+[。！？\n、，\s　]*)/g) || [text];
+  
+  const finalChunks = [];
+  const MAX_LENGTH = 20; // 20文字以上なら強制分割の対象（ラグ防止）
+
+  for (let chunk of initialChunks) {
+    while (chunk.trim().length > MAX_LENGTH) {
+      // 10文字目以降で最初に出現する「助詞（てにをは）」を探してそこで自然に分割する
+      const searchTarget = chunk.substring(10);
+      const match = searchTarget.match(/(て|に|を|は|が|で|と|も|から|まで|し)/);
+      
+      let splitIndex = -1;
+      
+      if (match) {
+        // 助詞の直後で切る
+        splitIndex = 10 + match.index + match[1].length;
+      }
+
+      // 助詞が見つかり、かつ細かすぎない場合
+      if (splitIndex !== -1 && splitIndex < chunk.length - 3) {
+        finalChunks.push(chunk.substring(0, splitIndex).trim());
+        chunk = chunk.substring(splitIndex);
+      } else {
+        // 助詞が見つからない「漢字や平仮名の連続」の場合は、ラグ防止を最優先して無慈悲に20文字で強制分割
+        finalChunks.push(chunk.substring(0, MAX_LENGTH).trim());
+        chunk = chunk.substring(MAX_LENGTH);
+      }
+    }
+    if (chunk.trim().length > 0) {
+      finalChunks.push(chunk.trim());
+    }
+  }
+  
+  return finalChunks;
 }
 
 module.exports = {
@@ -71,7 +108,7 @@ module.exports = {
       (connectedChannelId && connectedChannelId === message.channel.id)
     ) {
       const serverSetting = dataManager.getServerSetting(guildId);
-      const dictionary = dataManager.getDictionary(guildId);
+      const dictionary = dataManager.getCompiledDictionary(guildId);
       let processed = normalizeText(message.content, message.guild, dictionary);
 
       if (!processed) return;
@@ -83,18 +120,13 @@ module.exports = {
 
       const userSetting = dataManager.getUserSetting(message.author.id);
       
-      // レスポンス速度向上のため、文単位（。！？改行）で分割してキューに入れる
-      const chunks = processed.match(/([^。！？\n]+[。！？\n]*)/g);
+      // 自然言語処理による高度なチャンク分割
+      const chunks = advancedChunkText(processed);
       
       if (chunks && chunks.length > 0) {
         for (const chunk of chunks) {
-          const trimmedChunk = chunk.trim();
-          if (trimmedChunk.length > 0) {
-            audioPlayer.enqueueText(guildId, trimmedChunk, userSetting);
-          }
+          audioPlayer.enqueueText(guildId, chunk, userSetting);
         }
-      } else {
-        audioPlayer.enqueueText(guildId, processed, userSetting);
       }
     }
   },

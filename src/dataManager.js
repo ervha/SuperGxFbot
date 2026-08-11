@@ -3,7 +3,28 @@ const { getPool } = require('./db');
 const usersCache = new Map();
 const serverSettingsCache = new Map();
 const dictionaryCache = new Map();
+const compiledDictionaryCache = new Map();
 const autojoinCache = new Map();
+
+function buildCompiledDictionary(serverId) {
+  const serverDictMap = dictionaryCache.get(serverId);
+  if (!serverDictMap) {
+    compiledDictionaryCache.set(serverId, []);
+    return;
+  }
+  const list = [];
+  for (const [word, reading] of serverDictMap.entries()) {
+    list.push({ word, reading });
+  }
+  // 長い単語から順に置換するためソート
+  list.sort((a, b) => b.word.length - a.word.length);
+  
+  const compiledList = list.map(item => ({
+    regex: new RegExp(item.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+    reading: item.reading
+  }));
+  compiledDictionaryCache.set(serverId, compiledList);
+}
 
 const DEFAULT_USER_SETTING = {
   pitch: 0.0,
@@ -48,11 +69,17 @@ async function loadAllData() {
 
   const [dictRows] = await pool.query('SELECT server_id, word, reading FROM dictionary');
   dictionaryCache.clear();
+  compiledDictionaryCache.clear();
   for (const row of dictRows) {
     if (!dictionaryCache.has(row.server_id)) {
       dictionaryCache.set(row.server_id, new Map());
     }
     dictionaryCache.get(row.server_id).set(row.word, row.reading);
+  }
+  
+  // 各サーバーの辞書をコンパイル
+  for (const serverId of dictionaryCache.keys()) {
+    buildCompiledDictionary(serverId);
   }
 
   const [autojoinRows] = await pool.query('SELECT server_id, voice_channel_id FROM autojoin_settings');
@@ -133,11 +160,16 @@ function getDictionary(serverId) {
   return list;
 }
 
+function getCompiledDictionary(serverId) {
+  return compiledDictionaryCache.get(serverId) || [];
+}
+
 async function addDictionaryWord(serverId, word, reading) {
   if (!dictionaryCache.has(serverId)) {
     dictionaryCache.set(serverId, new Map());
   }
   dictionaryCache.get(serverId).set(word, reading);
+  buildCompiledDictionary(serverId);
 
   getPool().query(
     'INSERT INTO dictionary (server_id, word, reading) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE reading = VALUES(reading)',
@@ -152,6 +184,7 @@ async function removeDictionaryWord(serverId, word) {
   let removed = false;
   if (serverDictMap && serverDictMap.has(word)) {
     serverDictMap.delete(word);
+    buildCompiledDictionary(serverId);
     removed = true;
   }
 
@@ -198,6 +231,7 @@ module.exports = {
   getServerSetting,
   setServerSetting,
   getDictionary,
+  getCompiledDictionary,
   addDictionaryWord,
   removeDictionaryWord,
   getAutoJoinSetting,
