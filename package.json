@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/opus": "^0.10.0",
     "@discordjs/voice": "^0.19.2",
     "@keyv/sqlite": "^4.0.8",
     "axios": "^1.19.0",
@@ -20,7 +21,8 @@
     "keyv": "^5.6.0",
     "libsodium-wrappers": "^0.8.4",
     "mysql2": "^3.23.3",
-    "pify": "^6.1.0"
+    "pify": "^6.1.0",
+    "sodium-native": "^5.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
