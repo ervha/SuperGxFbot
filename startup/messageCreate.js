@@ -143,8 +143,24 @@ module.exports = {
       const chunks = advancedChunkText(processed);
       
       if (chunks && chunks.length > 0) {
+        // メッセージ全体の文字数に基づく「自動早口」機能（最大文字数制限後）
+        const totalLength = processed.length;
+        let speedMultiplier = 1.0;
+        
+        if (totalLength >= 40) {
+          speedMultiplier = 1.5;  // 40文字以上は1.5倍速
+        } else if (totalLength >= 30) {
+          speedMultiplier = 1.3;  // 30文字以上は1.3倍速
+        } else if (totalLength >= 20) {
+          speedMultiplier = 1.15; // 20文字以上はほんの少しだけ速く
+        }
+
+        // ユーザーの基本スピードに乗算し、上限（2.0）を超えないよう制限
+        const adjustedSetting = { ...userSetting };
+        adjustedSetting.speed = Math.min(2.0, Number(userSetting.speed) * speedMultiplier);
+
         for (const chunk of chunks) {
-          audioPlayer.enqueueText(guildId, chunk, userSetting);
+          audioPlayer.enqueueText(guildId, chunk, adjustedSetting);
         }
       }
     }
