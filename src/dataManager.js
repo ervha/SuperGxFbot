@@ -6,11 +6,15 @@ const dictionaryCache = new Map();
 const autojoinCache = new Map();
 
 const DEFAULT_USER_SETTING = {
-  speaker_id: 3,
   pitch: 0.0,
   speed: 1.0,
   intonation: 1.0,
 };
+
+// ランダムで割り当てるデフォルト話者IDのリスト（主要キャラのノーマルボイス等）
+const DEFAULT_SPEAKERS = [
+  2, 3, 8, 9, 10, 11, 12, 13, 14, 16, 20, 29, 42, 46
+];
 
 const DEFAULT_SERVER_SETTING = {
   max_length: 50,
@@ -63,7 +67,10 @@ async function loadAllData() {
 function getUserSetting(userId) {
   const cached = usersCache.get(userId);
   if (!cached) {
-    return { ...DEFAULT_USER_SETTING };
+    // ユーザーIDから決定的なインデックスを計算して話者を割り当てる
+    const hash = Number(BigInt(userId) % BigInt(DEFAULT_SPEAKERS.length));
+    const randomSpeakerId = DEFAULT_SPEAKERS[hash];
+    return { ...DEFAULT_USER_SETTING, speaker_id: randomSpeakerId };
   }
   return { ...cached };
 }
