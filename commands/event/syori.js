@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const { management_role_id, ownerId, api_token } = require('../../.env');
+require('dotenv').config();
+const { management_role_id, ownerId, api_token } = process.env;
 const axios = require('axios');
 const { URLSearchParams } = require('url');
 

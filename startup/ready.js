@@ -1,5 +1,6 @@
 const { Events, ActivityType } = require('discord.js');
-const { logging_channel_id } = require('../.env');
+require('dotenv').config();
+const { logging_channel_id } = process.env;
 
 module.exports = {
 	name: Events.ClientReady,

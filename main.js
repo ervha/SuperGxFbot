@@ -1,9 +1,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const Http = require('http');
-const port = process.env.PORT || 3000;
+require('dotenv').config();
+const { token, prefix, port } = process.env;
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
-const { token, prefix } = require('./.env');
 const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds,

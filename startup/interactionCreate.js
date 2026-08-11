@@ -1,7 +1,8 @@
 const { Events, MessageFlags, EmbedBuilder } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const { QUEST_ROLE_IDS } = require('../.env');
+require('dotenv').config();
+const { QUEST_ROLE_IDS } = process.env;
 
 module.exports = {
 	name: Events.InteractionCreate,
