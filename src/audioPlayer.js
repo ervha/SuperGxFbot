@@ -9,6 +9,7 @@ const {
 } = require('@discordjs/voice');
 const { Readable } = require('stream');
 const voicevox = require('./voicevox');
+const dataManager = require('./dataManager');
 
 const guildManagers = new Map();
 
@@ -114,11 +115,14 @@ async function playNext(guildId) {
   const item = manager.queue.shift();
 
   try {
+    const serverSetting = dataManager.getServerSetting(guildId);
     const audioBuffer = await voicevox.generateAudio(
       item.text,
       item.userSetting.speaker_id,
       item.userSetting.pitch,
-      item.userSetting.speed
+      item.userSetting.speed,
+      item.userSetting.intonation,
+      serverSetting.volume
     );
 
     if (!audioBuffer) {

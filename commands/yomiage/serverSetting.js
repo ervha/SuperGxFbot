@@ -5,8 +5,7 @@ const {
   ButtonBuilder,
   ButtonStyle,
   StringSelectMenuBuilder,
-  ComponentType,
-} = require('discord.js');
+  ComponentType, MessageFlags } = require('discord.js');
 const dataManager = require('../../src/dataManager');
 
 module.exports = {
@@ -16,7 +15,7 @@ module.exports = {
 
   async execute(interaction) {
     if (!interaction.guild) {
-      await interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
+      await interaction.reply({ content: 'サーバー内で実行してください。', flags: MessageFlags.Ephemeral });
       return;
     }
 
@@ -39,16 +38,28 @@ module.exports = {
           { label: '150文字', value: '150', default: current.max_length === 150 },
         ]);
 
+      const volumeSelect = new StringSelectMenuBuilder()
+        .setCustomId('select_volume')
+        .setPlaceholder('読み上げ音量を選択してください')
+        .addOptions([
+          { label: '音量: 0.5', value: '0.5', default: current.volume === 0.5 },
+          { label: '音量: 0.8', value: '0.8', default: current.volume === 0.8 },
+          { label: '音量: 1.0 (標準)', value: '1.0', default: current.volume === 1.0 },
+          { label: '音量: 1.5', value: '1.5', default: current.volume === 1.5 },
+          { label: '音量: 2.0 (最大)', value: '2.0', default: current.volume === 2.0 },
+        ]);
+
       const row1 = new ActionRowBuilder().addComponents(noticeButton);
       const row2 = new ActionRowBuilder().addComponents(lengthSelect);
-      return [row1, row2];
+      const row3 = new ActionRowBuilder().addComponents(volumeSelect);
+      return [row1, row2, row3];
     };
 
     const buildEmbed = (current) => {
       return new EmbedBuilder()
         .setTitle('サーバー読み上げ設定パネル')
         .setDescription(
-          `現在の設定:\n・上限文字数: ${current.max_length}文字\n・入室アナウンス: ${current.join_notice_enabled ? '有効' : '無効'}\n\n下のボタン・セレクトメニューで変更できます。`
+          `現在の設定:\n・上限文字数: ${current.max_length}文字\n・入室アナウンス: ${current.join_notice_enabled ? '有効' : '無効'}\n・読み上げ音量: ${current.volume}\n\n下のボタン・セレクトメニューで変更できます。`
         )
         .setColor(0x1ABC9C);
     };
@@ -58,7 +69,7 @@ module.exports = {
     const response = await interaction.reply({
       embeds: [buildEmbed(currentSetting)],
       components: buildComponents(currentSetting),
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
 
     const collector = response.createMessageComponentCollector({
@@ -67,7 +78,7 @@ module.exports = {
 
     collector.on('collect', async (i) => {
       if (i.user.id !== interaction.user.id) {
-        await i.reply({ content: '他のユーザーの操作パネルです。', ephemeral: true });
+        await i.reply({ content: '他のユーザーの操作パネルです。', flags: MessageFlags.Ephemeral });
         return;
       }
 
@@ -79,6 +90,9 @@ module.exports = {
       } else if (i.customId === 'select_max_length' && i.isStringSelectMenu()) {
         const newLength = parseInt(i.values[0], 10);
         await dataManager.setServerSetting(guildId, { max_length: newLength });
+      } else if (i.customId === 'select_volume' && i.isStringSelectMenu()) {
+        const newVolume = parseFloat(i.values[0]);
+        await dataManager.setServerSetting(guildId, { volume: newVolume });
       }
 
       currentSetting = dataManager.getServerSetting(guildId);

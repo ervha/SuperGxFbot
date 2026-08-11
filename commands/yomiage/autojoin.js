@@ -4,7 +4,7 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-} = require('discord.js');
+  MessageFlags } = require('discord.js');
 const dataManager = require('../../src/dataManager');
 
 module.exports = {
@@ -14,7 +14,7 @@ module.exports = {
 
   async execute(interaction) {
     if (!interaction.guild) {
-      await interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
+      await interaction.reply({ content: 'サーバー内で実行してください。', flags: MessageFlags.Ephemeral });
       return;
     }
 
@@ -68,7 +68,7 @@ module.exports = {
     const response = await interaction.reply({
       embeds: [buildEmbed(currentAutoJoinChannelId)],
       components: buildComponents(currentAutoJoinChannelId),
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
 
     const collector = response.createMessageComponentCollector({
@@ -77,7 +77,7 @@ module.exports = {
 
     collector.on('collect', async (i) => {
       if (i.user.id !== interaction.user.id) {
-        await i.reply({ content: '他のユーザーの操作パネルです。', ephemeral: true });
+        await i.reply({ content: '他のユーザーの操作パネルです。', flags: MessageFlags.Ephemeral });
         return;
       }
 

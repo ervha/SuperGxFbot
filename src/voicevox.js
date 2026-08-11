@@ -13,7 +13,7 @@ async function getSpeakers() {
   }
 }
 
-async function generateAudio(text, speakerId = 3, pitch = 0.0, speed = 1.0) {
+async function generateAudio(text, speakerId = 3, pitch = 0.0, speed = 1.0, intonation = 1.0, volume = 1.0) {
   try {
     const queryResponse = await axios.post(
       `${VOICEVOX_URL}/audio_query?text=${encodeURIComponent(text)}&speaker=${speakerId}`
@@ -22,6 +22,8 @@ async function generateAudio(text, speakerId = 3, pitch = 0.0, speed = 1.0) {
     const queryData = queryResponse.data;
     queryData.pitchScale = Number(pitch);
     queryData.speedScale = Number(speed);
+    queryData.intonationScale = Number(intonation);
+    queryData.volumeScale = Number(volume);
 
     const synthesisResponse = await axios.post(
       `${VOICEVOX_URL}/synthesis?speaker=${speakerId}`,

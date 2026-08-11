@@ -31,7 +31,8 @@ async function initDatabase() {
       user_id VARCHAR(64) PRIMARY KEY,
       speaker_id INT NOT NULL DEFAULT 3,
       pitch FLOAT NOT NULL DEFAULT 0.0,
-      speed FLOAT NOT NULL DEFAULT 1.0
+      speed FLOAT NOT NULL DEFAULT 1.0,
+      intonation FLOAT NOT NULL DEFAULT 1.0
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
@@ -39,7 +40,8 @@ async function initDatabase() {
     CREATE TABLE IF NOT EXISTS server_settings (
       server_id VARCHAR(64) PRIMARY KEY,
       max_length INT NOT NULL DEFAULT 50,
-      join_notice_enabled TINYINT(1) NOT NULL DEFAULT 1
+      join_notice_enabled TINYINT(1) NOT NULL DEFAULT 1,
+      volume FLOAT NOT NULL DEFAULT 1.0
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
@@ -58,6 +60,9 @@ async function initDatabase() {
       voice_channel_id VARCHAR(64) NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+
+  try { await pool.query('ALTER TABLE users ADD COLUMN intonation FLOAT NOT NULL DEFAULT 1.0'); } catch(e) { if(e.code !== 'ER_DUP_FIELDNAME') console.error(e); }
+  try { await pool.query('ALTER TABLE server_settings ADD COLUMN volume FLOAT NOT NULL DEFAULT 1.0'); } catch(e) { if(e.code !== 'ER_DUP_FIELDNAME') console.error(e); }
 
   console.log('Database initialization completed successfully.');
 }

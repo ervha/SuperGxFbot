@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder , MessageFlags } = require('discord.js');
 const audioPlayer = require('../../src/audioPlayer');
 
 module.exports = {
@@ -11,7 +11,7 @@ module.exports = {
     if (!connectedChannelId) {
       await interaction.reply({
         content: 'ボットはボイスチャンネルに接続していません。',
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -26,13 +26,13 @@ module.exports = {
 
       await interaction.reply({
         embeds: [embed],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     } catch (error) {
       console.error('Failed to leave voice channel:', error);
       await interaction.reply({
         content: '切断処理中にエラーが発生しました。',
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   },

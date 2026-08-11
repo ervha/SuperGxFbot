@@ -1,4 +1,4 @@
-const { Events } = require('discord.js');
+const { Events, EmbedBuilder } = require('discord.js');
 const audioPlayer = require('../src/audioPlayer');
 const dataManager = require('../src/dataManager');
 
@@ -12,6 +12,21 @@ module.exports = {
     const guildId = guild.id;
 
     const isJoin = oldState.channelId !== newState.channelId && newState.channelId !== null;
+    const isLeave = oldState.channelId !== newState.channelId && oldState.channelId !== null;
+
+    if (isLeave) {
+      const connectedChannelId = audioPlayer.getConnectedChannelId(guildId);
+      if (connectedChannelId && connectedChannelId === oldState.channelId) {
+        const oldChannel = oldState.channel;
+        if (oldChannel) {
+          const nonBotMembers = oldChannel.members.filter(m => !m.user.bot);
+          if (nonBotMembers.size === 0) {
+            audioPlayer.leaveChannel(guildId);
+          }
+        }
+      }
+    }
+
     if (!isJoin) return;
 
     const autoJoinChannelId = dataManager.getAutoJoinSetting(guildId);
@@ -19,8 +34,15 @@ module.exports = {
 
     if (autoJoinChannelId && autoJoinChannelId === newState.channelId && !connectedChannelId) {
       try {
-        const textChannel = guild.systemChannel || guild.channels.cache.find(ch => ch.isTextBased() && ch.permissionsFor(guild.members.me).has('SendMessages'));
-        audioPlayer.joinChannel(newState.channel, textChannel ? textChannel.id : null);
+        // VC内テキストチャンネルを読み上げ対象としてセット
+        audioPlayer.joinChannel(newState.channel, newState.channelId);
+
+        const embed = new EmbedBuilder()
+          .setTitle('自動接続')
+          .setDescription(`${newState.channel.name} に自動接続しました。このチャンネルのメッセージを読み上げます。`)
+          .setColor(0x00AE86);
+
+        await newState.channel.send({ embeds: [embed] });
       } catch (error) {
         console.error(`Failed auto-join for guild ${guildId}:`, error.message);
       }

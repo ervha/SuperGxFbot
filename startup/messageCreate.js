@@ -63,8 +63,12 @@ module.exports = {
 
     const guildId = message.guild.id;
     const readChannelId = audioPlayer.getReadChannelId(guildId);
+    const connectedChannelId = audioPlayer.getConnectedChannelId(guildId);
 
-    if (readChannelId && readChannelId === message.channel.id) {
+    if (
+      (readChannelId && readChannelId === message.channel.id) ||
+      (connectedChannelId && connectedChannelId === message.channel.id)
+    ) {
       const serverSetting = dataManager.getServerSetting(guildId);
       const dictionary = dataManager.getDictionary(guildId);
       let processed = normalizeText(message.content, message.guild, dictionary);

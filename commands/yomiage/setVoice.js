@@ -3,8 +3,7 @@ const {
   EmbedBuilder,
   ActionRowBuilder,
   StringSelectMenuBuilder,
-  ComponentType,
-} = require('discord.js');
+  ComponentType, MessageFlags } = require('discord.js');
 const voicevox = require('../../src/voicevox');
 const dataManager = require('../../src/dataManager');
 
@@ -59,7 +58,7 @@ module.exports = {
     const response = await interaction.reply({
       embeds: [embed],
       components: [row],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
 
     const collector = response.createMessageComponentCollector({
@@ -69,7 +68,7 @@ module.exports = {
 
     collector.on('collect', async (i) => {
       if (i.user.id !== interaction.user.id) {
-        await i.reply({ content: '他のユーザーの操作パネルです。', ephemeral: true });
+        await i.reply({ content: '他のユーザーの操作パネルです。', flags: MessageFlags.Ephemeral });
         return;
       }
 

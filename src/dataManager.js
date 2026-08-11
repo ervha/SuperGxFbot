@@ -9,32 +9,36 @@ const DEFAULT_USER_SETTING = {
   speaker_id: 3,
   pitch: 0.0,
   speed: 1.0,
+  intonation: 1.0,
 };
 
 const DEFAULT_SERVER_SETTING = {
   max_length: 50,
   join_notice_enabled: true,
+  volume: 1.0,
 };
 
 async function loadAllData() {
   const pool = getPool();
 
-  const [userRows] = await pool.query('SELECT user_id, speaker_id, pitch, speed FROM users');
+  const [userRows] = await pool.query('SELECT user_id, speaker_id, pitch, speed, intonation FROM users');
   usersCache.clear();
   for (const row of userRows) {
     usersCache.set(row.user_id, {
       speaker_id: Number(row.speaker_id),
       pitch: Number(row.pitch),
       speed: Number(row.speed),
+      intonation: Number(row.intonation ?? 1.0),
     });
   }
 
-  const [serverRows] = await pool.query('SELECT server_id, max_length, join_notice_enabled FROM server_settings');
+  const [serverRows] = await pool.query('SELECT server_id, max_length, join_notice_enabled, volume FROM server_settings');
   serverSettingsCache.clear();
   for (const row of serverRows) {
     serverSettingsCache.set(row.server_id, {
       max_length: Number(row.max_length),
       join_notice_enabled: Boolean(row.join_notice_enabled),
+      volume: Number(row.volume ?? 1.0),
     });
   }
 
@@ -70,13 +74,14 @@ async function setUserSetting(userId, data) {
     speaker_id: data.speaker_id !== undefined ? Number(data.speaker_id) : current.speaker_id,
     pitch: data.pitch !== undefined ? Number(data.pitch) : current.pitch,
     speed: data.speed !== undefined ? Number(data.speed) : current.speed,
+    intonation: data.intonation !== undefined ? Number(data.intonation) : current.intonation,
   };
 
   usersCache.set(userId, updated);
 
   getPool().query(
-    'INSERT INTO users (user_id, speaker_id, pitch, speed) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE speaker_id = VALUES(speaker_id), pitch = VALUES(pitch), speed = VALUES(speed)',
-    [userId, updated.speaker_id, updated.pitch, updated.speed]
+    'INSERT INTO users (user_id, speaker_id, pitch, speed, intonation) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE speaker_id = VALUES(speaker_id), pitch = VALUES(pitch), speed = VALUES(speed), intonation = VALUES(intonation)',
+    [userId, updated.speaker_id, updated.pitch, updated.speed, updated.intonation]
   ).catch(error => {
     console.error('Failed to asynchronously write user setting to database:', error);
   });
@@ -95,13 +100,14 @@ async function setServerSetting(serverId, data) {
   const updated = {
     max_length: data.max_length !== undefined ? Number(data.max_length) : current.max_length,
     join_notice_enabled: data.join_notice_enabled !== undefined ? Boolean(data.join_notice_enabled) : current.join_notice_enabled,
+    volume: data.volume !== undefined ? Number(data.volume) : current.volume,
   };
 
   serverSettingsCache.set(serverId, updated);
 
   getPool().query(
-    'INSERT INTO server_settings (server_id, max_length, join_notice_enabled) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE max_length = VALUES(max_length), join_notice_enabled = VALUES(join_notice_enabled)',
-    [serverId, updated.max_length, updated.join_notice_enabled ? 1 : 0]
+    'INSERT INTO server_settings (server_id, max_length, join_notice_enabled, volume) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE max_length = VALUES(max_length), join_notice_enabled = VALUES(join_notice_enabled), volume = VALUES(volume)',
+    [serverId, updated.max_length, updated.join_notice_enabled ? 1 : 0, updated.volume]
   ).catch(error => {
     console.error('Failed to asynchronously write server setting to database:', error);
   });

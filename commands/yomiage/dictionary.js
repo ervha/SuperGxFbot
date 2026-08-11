@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder , MessageFlags } = require('discord.js');
 const dataManager = require('../../src/dataManager');
 
 module.exports = {
@@ -26,7 +26,7 @@ module.exports = {
 
   async execute(interaction) {
     if (!interaction.guild) {
-      await interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
+      await interaction.reply({ content: 'サーバー内で実行してください。', flags: MessageFlags.Ephemeral });
       return;
     }
 
@@ -44,7 +44,7 @@ module.exports = {
         .setDescription(`単語: ${word}\n読み方: ${reading}\n\n上記内容で辞書に登録・更新しました。`)
         .setColor(0x2ECC71);
 
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     } else if (subcommand === 'remove') {
       const word = interaction.options.getString('word').trim();
       const removed = await dataManager.removeDictionaryWord(guildId, word);
@@ -54,12 +54,12 @@ module.exports = {
         .setDescription(removed ? `単語: ${word} を辞書から削除しました。` : `単語: ${word} は辞書に登録されていません。`)
         .setColor(removed ? 0xE74C3C : 0x95A5A6);
 
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     } else if (subcommand === 'list') {
       const dictList = dataManager.getDictionary(guildId);
 
       if (dictList.length === 0) {
-        await interaction.reply({ content: '現在登録されている辞書単語はありません。', ephemeral: true });
+        await interaction.reply({ content: '現在登録されている辞書単語はありません。', flags: MessageFlags.Ephemeral });
         return;
       }
 
@@ -69,7 +69,7 @@ module.exports = {
         .setDescription(lines.slice(0, 25).join('\n') + (lines.length > 25 ? `\n\n他 ${lines.length - 25} 件` : ''))
         .setColor(0x3498DB);
 
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
   },
 };
