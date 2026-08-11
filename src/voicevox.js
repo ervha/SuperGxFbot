@@ -104,6 +104,10 @@ async function generateAudio(text, speakerId = 3, pitch = 0.0, speed = 1.0, into
     queryData.speedScale = Number(speed);
     queryData.intonationScale = Number(intonation);
     queryData.volumeScale = Number(volume);
+    
+    // 分割された音声同士をスムーズに連結するため、デフォルトで付与される前後の無音時間（各0.1秒）を削除
+    queryData.prePhonemeLength = 0.0;
+    queryData.postPhonemeLength = 0.0;
 
     const synthesisResponse = await apiClient.post(
       `${VOICEVOX_URL}/synthesis?speaker=${speakerId}`,
