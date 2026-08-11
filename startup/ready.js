@@ -1,5 +1,5 @@
 const { Events, ActivityType } = require('discord.js');
-const { logging_channel_id } = require('../config.json');
+const { logging_channel_id } = require('../.env');
 
 module.exports = {
 	name: Events.ClientReady,

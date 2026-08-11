@@ -3,20 +3,20 @@ const path = require('node:path');
 const Http = require('http');
 const port = process.env.PORT || 3000;
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
-const { token, prefix } = require('./config.json');
+const { token, prefix } = require('./.env');
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
+	intents: [
+		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildScheduledEvents,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.GuildMessageReactions,
 		GatewayIntentBits.GuildMessagePolls,
-        GatewayIntentBits.GuildVoiceStates,
-        GatewayIntentBits.MessageContent
-    ],
-   disableMentions: 'everyone',
-    partials: [
+		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.MessageContent
+	],
+	disableMentions: 'everyone',
+	partials: [
 		Partials.Channel,
 		Partials.GuildMember,
 		Partials.Message,
@@ -30,8 +30,8 @@ console.log("スタートアップファイルを読み込んでいます・・�
 const startupPath = path.join(__dirname, 'startup');
 const startupFiles = fs.readdirSync(startupPath).filter(file => file.endsWith('.js'));
 
-Http.createServer(function(req, res) {
-        console.log('Ping received!');
+Http.createServer(function (req, res) {
+	console.log('Ping received!');
 	res.write("OK");
 	res.end();
 }).listen(port, '0.0.0.0', () => {

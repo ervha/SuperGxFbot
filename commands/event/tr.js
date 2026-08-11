@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const {management_role_id, ownerId, api_token} = require('../../config.json');
+const { management_role_id, ownerId, api_token } = require('../../.env');
 const axios = require('axios');
 const { URLSearchParams } = require('url');
 
@@ -9,22 +9,22 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("tr")
 		.setDescription('鳥が出たら実行')
-		.addIntegerOption(option => 
+		.addIntegerOption(option =>
 			option.setName('room_number')
 				.setDescription('鳥が出た部屋の番号')
 				.setRequired(true)),
 
-    async execute(interaction){
-        if (!interaction.isCommand()) return;
-		await interaction.deferReply({ });
+	async execute(interaction) {
+		if (!interaction.isCommand()) return;
+		await interaction.deferReply({});
 		const content = interaction.options.getInteger('room_number');
 		const config_filePath = path.join(__dirname, '../json/bot-config.json');
 		const rooms_filePath = path.join(__dirname, '../json/room.json');
 		const dir = path.dirname(rooms_filePath);
 		await fs.mkdir(dir, { recursive: true });
-			
+
 		try {
-			if (!content || content <= 0) { 
+			if (!content || content <= 0) {
 				await interaction.editReply({
 					content: `エラー：有効な部屋番号を入力してください。${content}は無効です。`,
 					flags: MessageFlags.SuppressNotifications
@@ -67,7 +67,7 @@ module.exports = {
 				return;
 			}
 
-			roomsData.push({ room_number: content , holder: "なし" });
+			roomsData.push({ room_number: content, holder: "なし" });
 			let room_number_Array = roomsData.map(room => room.room_number);
 
 			let nexts_room = room_number_Array.slice(1);
@@ -76,7 +76,7 @@ module.exports = {
 			let taiki_member = maxMemberValue - 8;
 			let taiki_room = nexts_room.length;
 
-			for  (let i = 1; i <= taiki_member; i++) {
+			for (let i = 1; i <= taiki_member; i++) {
 				let room = room_number_Array[0] - i;
 				if (room_number_Array[0] - i <= 0) {
 					taiki.push(room + maxMemberValue);
@@ -160,12 +160,12 @@ module.exports = {
 			}).catch(err => console.error('APIステータス更新エラー:', err.message));
 
 			await interaction.editReply(`${addroom}の部屋を登録しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`);
-        } catch (error) {
+		} catch (error) {
 			console.error(error);
-            await interaction.editReply({
-                content: `エラーが発生しました。`,
-                flags: MessageFlags.SuppressNotifications
-            });
-        }
+			await interaction.editReply({
+				content: `エラーが発生しました。`,
+				flags: MessageFlags.SuppressNotifications
+			});
+		}
 	},
 };

@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const { management_role_id, ownerId, api_token } = require('../../config.json');
+const { management_role_id, ownerId, api_token } = require('../../.env');
 const axios = require('axios');
 const { URLSearchParams } = require('url');
 
@@ -9,11 +9,11 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("edit")
 		.setDescription('登録済みの部屋番号を修正')
-		.addIntegerOption(option => 
+		.addIntegerOption(option =>
 			option.setName('position')
 				.setDescription('修正したい部屋の位置（先頭から何番目か。1から指定）')
 				.setRequired(true))
-		.addIntegerOption(option => 
+		.addIntegerOption(option =>
 			option.setName('newroom_number')
 				.setDescription('新しい部屋番号')
 				.setRequired(true)),
@@ -51,7 +51,7 @@ module.exports = {
 
 				let existingRooms = roomsData.map(r => r.room_number);
 				let oldRoomNumber = roomsData[position - 1].room_number;
-				
+
 				if (newRoomNumber !== oldRoomNumber && existingRooms.includes(newRoomNumber)) {
 					await interaction.editReply(`エラー：新しい部屋番号（${newRoomNumber}）は既に他の枠で登録されています。`);
 					return;
@@ -175,17 +175,17 @@ module.exports = {
 
 				await interaction.editReply(replyText);
 
-				
+
 			} else {
-				await interaction.editReply({content: '権限が付与されていません'});
+				await interaction.editReply({ content: '権限が付与されていません' });
 			}
 
-			} catch (error) {
-				console.error('editroom内部エラー:', error);
-				await interaction.editReply({
-					content: `エラーが発生しました。`,
-					flags: MessageFlags.SuppressNotifications
-				});
+		} catch (error) {
+			console.error('editroom内部エラー:', error);
+			await interaction.editReply({
+				content: `エラーが発生しました。`,
+				flags: MessageFlags.SuppressNotifications
+			});
 		}
 	},
 };

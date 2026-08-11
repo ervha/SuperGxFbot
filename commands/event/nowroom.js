@@ -1,19 +1,19 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const {management_role_id, ownerId} = require('../../config.json');
+const { management_role_id, ownerId } = require('../../.env');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("nowroom")
 		.setDescription('現在処理中の部屋を表示'),
 
-    async execute(interaction){
-        if (!interaction.isCommand()) return;
-		await interaction.deferReply({ });
+	async execute(interaction) {
+		if (!interaction.isCommand()) return;
+		await interaction.deferReply({});
 		const config_filePath = path.join(__dirname, '../json/bot-config.json');
-		const rooms_filePath = path.join(__dirname, '../json/room.json')		
-			
+		const rooms_filePath = path.join(__dirname, '../json/room.json')
+
 		try {
 			try {
 				let roomsData = [];
@@ -31,7 +31,7 @@ module.exports = {
 
 				let currentroom = roomsData[0];
 				let nexts_room = roomsData.slice(1);
-				
+
 				let maxMemberValue = 10;
 				try {
 					const data = await fs.readFile(config_filePath, 'utf8');
@@ -43,7 +43,7 @@ module.exports = {
 				let taiki = [];
 				let taiki_room = maxMemberValue - 8;
 
-				for  (let i = 1; i <= taiki_room; i++) {
+				for (let i = 1; i <= taiki_room; i++) {
 					let room = currentroom.room_number - i;
 					if (room <= 0) {
 						taiki.push(room + maxMemberValue);
@@ -61,11 +61,11 @@ module.exports = {
 			} catch (err) {
 				await interaction.editReply('部屋の確認中にエラーが発生しました')
 			}
-        } catch (error) {
-            await interaction.editReply({
-                content: `エラーが発生しました。`,
-                flags: MessageFlags.SuppressNotifications
-            });
-        }
+		} catch (error) {
+			await interaction.editReply({
+				content: `エラーが発生しました。`,
+				flags: MessageFlags.SuppressNotifications
+			});
+		}
 	},
 };

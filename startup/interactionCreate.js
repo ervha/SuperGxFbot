@@ -1,13 +1,13 @@
 const { Events, MessageFlags, EmbedBuilder } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const { QUEST_ROLE_IDS } = require('../config.json');
+const { QUEST_ROLE_IDS } = require('../.env');
 
 module.exports = {
 	name: Events.InteractionCreate,
 
 	async execute(interaction) {
-		if (interaction.isCommand()){
+		if (interaction.isCommand()) {
 			const command = interaction.client.commands.get(interaction.commandName);
 			if (!command) {
 				console.error(`No command matching ${interaction.commandName} was found.`);
@@ -28,7 +28,7 @@ module.exports = {
 			if (!command) {
 				console.error(`No command matching ${interaction.commandName} was found.`);
 				return;
-			}	
+			}
 			try {
 				await command.autocomplete(interaction);
 			}

@@ -1,20 +1,20 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs').promises;
 const path = require('path');
-const {management_role_id, ownerId} = require('../../config.json');
+const { management_role_id, ownerId } = require('../../.env');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("show")
 		.setDescription('現在の最大人数を表示'),
 
-    async execute(interaction){
-        if (!interaction.isCommand()) return;
-		await interaction.deferReply({ });
-        
-        const config_filePath = path.join(__dirname, '../json/bot-config.json');
-        const dir = path.dirname(config_filePath);
-        await fs.mkdir(dir, { recursive: true });
+	async execute(interaction) {
+		if (!interaction.isCommand()) return;
+		await interaction.deferReply({});
+
+		const config_filePath = path.join(__dirname, '../json/bot-config.json');
+		const dir = path.dirname(config_filePath);
+		await fs.mkdir(dir, { recursive: true });
 
 		try {
 			const data = await fs.readFile(config_filePath, 'utf8');
@@ -24,7 +24,7 @@ module.exports = {
 			} else {
 				await interaction.editReply(`権限が付与されていません`)
 			}
-        } catch (error) {
+		} catch (error) {
 			if (error.code === 'ENOENT') {
 				await interaction.editReply({
 					content: `最大人数の設定が見つかりません。まずは /member コマンドで最大人数を設定してください。`,
@@ -36,6 +36,6 @@ module.exports = {
 					flags: MessageFlags.SuppressNotifications
 				});
 			}
-        }
+		}
 	},
 };
