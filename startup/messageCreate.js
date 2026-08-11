@@ -8,6 +8,10 @@ function normalizeText(content, guild, dictionary) {
   text = text.replace(/https?:\/\/[^\s]+/g, 'URL省略');
   text = text.replace(/\|\|.*?\|\|/g, '');
 
+  // スパム防止：同じ文字が4回以上連続している場合は3回に圧縮する（例：あああああ → あああ）
+  // 処理負荷軽減と、不快なロングトーン読み上げを防止
+  text = text.replace(/(.)\1{3,}/gu, '$1$1$1');
+
   text = text.replace(/<@!?(\d+)>/g, (match, id) => {
     const member = guild.members.cache.get(id);
     return member ? member.displayName : 'ユーザー';
@@ -24,7 +28,7 @@ function normalizeText(content, guild, dictionary) {
   });
 
   text = text.replace(/<a?:([a-zA-Z0-9_]+):\d+>/g, '$1');
-  text = text.replace(/(?<![a-zA-Z])[wｗ]+(?![a-zA-Z.])/gi, '草');
+  text = text.replace(/(?<![a-zA-Z])[wｗ]{2,}(?![a-zA-Z.])/gi, '草');
 
   if (dictionary && dictionary.length > 0) {
     for (const item of dictionary) {
@@ -110,6 +114,21 @@ module.exports = {
       const serverSetting = dataManager.getServerSetting(guildId);
       const dictionary = dataManager.getCompiledDictionary(guildId);
       let processed = normalizeText(message.content, message.guild, dictionary);
+
+      if (message.attachments.size > 0) {
+        const hasImage = message.attachments.some(att => att.contentType && att.contentType.startsWith('image/'));
+        const hasVideo = message.attachments.some(att => att.contentType && att.contentType.startsWith('video/'));
+        const hasAudio = message.attachments.some(att => att.contentType && att.contentType.startsWith('audio/'));
+
+        let attachmentText = '';
+        if (hasImage) attachmentText += '画像を送信しました。';
+        if (hasVideo) attachmentText += '動画を送信しました。';
+        if (hasAudio) attachmentText += '音声ファイルを送信しました。';
+        
+        if (attachmentText !== '') {
+           processed = processed ? processed + ' ' + attachmentText : attachmentText;
+        }
+      }
 
       if (!processed) return;
 
