@@ -1,6 +1,10 @@
 const axios = require('axios');
 const http = require('http');
 const https = require('https');
+const fs = require('fs');
+const fsp = require('fs').promises;
+const path = require('path');
+const crypto = require('crypto');
 const config = require('../config');
 
 const VOICEVOX_URL = config.voicevoxUrl;
@@ -10,9 +14,53 @@ const apiClient = axios.create({
   httpsAgent: new https.Agent({ keepAlive: true }),
 });
 
-const systemAudioCache = new Map();
-const audioCache = new Map();
-const MAX_CACHE_SIZE = 300;
+const CACHE_DIR = path.join(__dirname, '../audio_cache');
+const SYSTEM_CACHE_DIR = path.join(__dirname, '../audio_cache/system');
+const MAX_CACHE_SIZE = 1000;
+
+if (!fs.existsSync(CACHE_DIR)) {
+  fs.mkdirSync(CACHE_DIR, { recursive: true });
+}
+if (!fs.existsSync(SYSTEM_CACHE_DIR)) {
+  fs.mkdirSync(SYSTEM_CACHE_DIR, { recursive: true });
+}
+
+function generateHash(str) {
+  return crypto.createHash('md5').update(str).digest('hex');
+}
+
+async function cleanUpOldCache() {
+  try {
+    const files = await fsp.readdir(CACHE_DIR);
+    const wavFiles = files.filter(f => f.endsWith('.wav'));
+    if (wavFiles.length <= MAX_CACHE_SIZE) return;
+
+    const statPromises = wavFiles.map(async (file) => {
+      const filePath = path.join(CACHE_DIR, file);
+      const stats = await fsp.stat(filePath);
+      return { file: filePath, mtime: stats.mtime.getTime() };
+    });
+
+    const fileStats = await Promise.all(statPromises);
+    fileStats.sort((a, b) => a.mtime - b.mtime);
+
+    const excess = fileStats.length - MAX_CACHE_SIZE;
+    for (let i = 0; i < excess; i++) {
+      await fsp.unlink(fileStats[i].file).catch(() => { });
+    }
+  } catch (error) {
+    console.error('Failed to clean up audio cache:', error.message);
+  }
+}
+
+async function fileExists(filePath) {
+  try {
+    await fsp.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 async function getSpeakers() {
   try {
@@ -26,19 +74,20 @@ async function getSpeakers() {
 
 async function generateAudio(text, speakerId = 3, pitch = 0.0, speed = 1.0, intonation = 1.0, volume = 1.0, isSystem = false) {
   const cacheKey = `${text}_${speakerId}_${pitch}_${speed}_${intonation}_${volume}`;
+  const hash = generateHash(cacheKey);
+  const targetDir = isSystem ? SYSTEM_CACHE_DIR : CACHE_DIR;
+  const filePath = path.join(targetDir, `${hash}.wav`);
 
-  // 1. システムメッセージの場合は永続キャッシュを確認
-  if (isSystem && systemAudioCache.has(cacheKey)) {
-    return systemAudioCache.get(cacheKey);
-  }
+  const exists = await fileExists(filePath);
 
-  // 2. 通常のメッセージの場合はLRUキャッシュを確認
-  if (!isSystem && audioCache.has(cacheKey)) {
-    const audioBuffer = audioCache.get(cacheKey);
-    // アクセスがあったものを削除して再セットすることで、削除対象から遠ざける (LRUの実現)
-    audioCache.delete(cacheKey);
-    audioCache.set(cacheKey, audioBuffer);
-    return audioBuffer;
+  if (exists) {
+    try {
+      const now = new Date();
+      await fsp.utimes(filePath, now, now);
+      return await fsp.readFile(filePath);
+    } catch (error) {
+      console.error('Failed to read cache file:', error.message);
+    }
   }
 
   try {
@@ -63,14 +112,10 @@ async function generateAudio(text, speakerId = 3, pitch = 0.0, speed = 1.0, into
 
     const audioBuffer = Buffer.from(synthesisResponse.data);
 
-    if (isSystem) {
-      systemAudioCache.set(cacheKey, audioBuffer);
-    } else {
-      if (audioCache.size >= MAX_CACHE_SIZE) {
-        const oldestKey = audioCache.keys().next().value;
-        audioCache.delete(oldestKey);
-      }
-      audioCache.set(cacheKey, audioBuffer);
+    await fsp.writeFile(filePath, audioBuffer);
+
+    if (!isSystem) {
+      cleanUpOldCache();
     }
 
     return audioBuffer;
@@ -82,7 +127,6 @@ async function generateAudio(text, speakerId = 3, pitch = 0.0, speed = 1.0, into
 
 async function preloadSystemMessages(texts, speakerId = 3, pitch = 0.0, speed = 1.0, intonation = 1.0, volume = 1.0) {
   for (const text of texts) {
-    // isSystem = true として呼び出す
     await generateAudio(text, speakerId, pitch, speed, intonation, volume, true);
   }
 }
@@ -90,4 +134,5 @@ async function preloadSystemMessages(texts, speakerId = 3, pitch = 0.0, speed = 
 module.exports = {
   getSpeakers,
   generateAudio,
+  preloadSystemMessages,
 };
