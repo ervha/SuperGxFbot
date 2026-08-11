@@ -16,46 +16,38 @@ module.exports = {
 
   async execute(interaction) {
     const userSetting = dataManager.getUserSetting(interaction.user.id);
-    const speakersData = await voicevox.getSpeakers();
+    const speakersData = await voicevox.getSpeakers() || [];
 
-    const allOptions = [];
-    if (speakersData && speakersData.length > 0) {
-      for (const speaker of speakersData) {
-        if (!speaker.styles) continue;
-        for (const style of speaker.styles) {
-          allOptions.push({
-            label: `${speaker.name} (${style.name})`.substring(0, 100),
-            value: String(style.id),
-            description: `話者ID: ${style.id}`,
-          });
-        }
-      }
-    }
+    // ステップ1: キャラクター(モデル)のリストを作成
+    const characterOptions = [];
+    speakersData.forEach(speaker => {
+      if (!speaker.styles || speaker.styles.length === 0) return;
+      characterOptions.push({
+        label: speaker.name.substring(0, 100),
+        value: speaker.speaker_uuid, // UUIDを識別子として使う
+        description: `スタイル数: ${speaker.styles.length}`
+      });
+    });
 
-    if (allOptions.length === 0) {
-      allOptions.push(
-        { label: '四国めたん (ノーマル)', value: '2', description: '話者ID: 2' },
-        { label: 'ずんだもん (ノーマル)', value: '3', description: '話者ID: 3' }
+    if (characterOptions.length === 0) {
+      characterOptions.push(
+        { label: '四国めたん', value: 'fallback_metan', description: 'スタイル数: 1' },
+        { label: 'ずんだもん', value: 'fallback_zunda', description: 'スタイル数: 1' }
       );
     }
 
     let currentPage = 0;
-    const maxPage = Math.ceil(allOptions.length / 25) - 1;
+    const maxPage = Math.ceil(characterOptions.length / 25) - 1;
 
-    const buildMessageOptions = (page) => {
+    // --- キャラクター選択画面を構築する関数 ---
+    const buildCharacterOptions = (page) => {
       const start = page * 25;
       const end = start + 25;
-      const currentOptions = allOptions.slice(start, end).map(opt => {
-        const isCurrent = opt.value === String(userSetting.speaker_id);
-        return {
-          ...opt,
-          description: isCurrent ? `${opt.description} (現在選択中)` : opt.description,
-        };
-      });
+      const currentOptions = characterOptions.slice(start, end);
 
       const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('select_voice_speaker')
-        .setPlaceholder(`話者を選択 (ページ ${page + 1}/${maxPage + 1})`)
+        .setCustomId('select_voice_character')
+        .setPlaceholder(`キャラクターを選択 (ページ ${page + 1}/${maxPage + 1})`)
         .addOptions(currentOptions);
 
       const rowSelect = new ActionRowBuilder().addComponents(selectMenu);
@@ -75,15 +67,51 @@ module.exports = {
       const rowButtons = new ActionRowBuilder().addComponents(btnPrev, btnNext);
 
       const embed = new EmbedBuilder()
-        .setTitle('読み上げ話者設定')
-        .setDescription(`現在の設定話者ID: ${userSetting.speaker_id}\n\n総ボイス数: ${allOptions.length}\n下のメニューから設定したい話者を選択するか、ボタンでページを切り替えてください。`)
+        .setTitle('Step 1: キャラクターの選択')
+        .setDescription(`現在の設定話者ID: ${userSetting.speaker_id}\n\nまずは声のベースとなる「キャラクター」を選択してください。`)
         .setColor(0x3498DB);
 
       return { embeds: [embed], components: [rowSelect, rowButtons] };
     };
 
+    // --- スタイル選択画面を構築する関数 ---
+    const buildStyleOptions = (speakerUuid) => {
+      const speaker = speakersData.find(s => s.speaker_uuid === speakerUuid);
+      const styleOptions = speaker.styles.map(style => {
+        const isCurrent = String(style.id) === String(userSetting.speaker_id);
+        return {
+          label: style.name.substring(0, 100),
+          value: String(style.id),
+          description: isCurrent ? `話者ID: ${style.id} (現在選択中)` : `話者ID: ${style.id}`
+        };
+      });
+      
+      // スタイルリストの作成（25種類を超えるキャラはVoicevoxにはほぼいないためページネーション省略）
+      const selectMenu = new StringSelectMenuBuilder()
+        .setCustomId('select_voice_style')
+        .setPlaceholder(`${speaker.name} のスタイルを選択`)
+        .addOptions(styleOptions);
+        
+      const rowSelect = new ActionRowBuilder().addComponents(selectMenu);
+      
+      const btnBack = new ButtonBuilder()
+        .setCustomId('back_to_character')
+        .setLabel('◀ キャラクター選択に戻る')
+        .setStyle(ButtonStyle.Danger);
+        
+      const rowButtons = new ActionRowBuilder().addComponents(btnBack);
+      
+      const embed = new EmbedBuilder()
+        .setTitle(`Step 2: ${speaker.name} のスタイル選択`)
+        .setDescription(`次に、${speaker.name} の声のスタイル（感情やトーン）を選択してください。`)
+        .setColor(0xF39C12);
+        
+      return { embeds: [embed], components: [rowSelect, rowButtons] };
+    };
+
+    // 最初にキャラクター選択画面を送信
     const response = await interaction.reply({
-      ...buildMessageOptions(currentPage),
+      ...buildCharacterOptions(currentPage),
       flags: MessageFlags.Ephemeral,
     });
 
@@ -97,36 +125,47 @@ module.exports = {
         return;
       }
 
-      if (i.isStringSelectMenu() && i.customId === 'select_voice_speaker') {
-        const newSpeakerId = parseInt(i.values[0], 10);
-        await dataManager.setUserSetting(interaction.user.id, { speaker_id: newSpeakerId });
-        userSetting.speaker_id = newSpeakerId;
+      if (i.isStringSelectMenu()) {
+        if (i.customId === 'select_voice_character') {
+          // キャラクターが選ばれたら、スタイル選択画面（Step 2）へ移行
+          const selectedUuid = i.values[0];
+          await i.update(buildStyleOptions(selectedUuid));
+        } else if (i.customId === 'select_voice_style') {
+          // スタイルが選ばれたら設定を保存して終了
+          const newSpeakerId = parseInt(i.values[0], 10);
+          await dataManager.setUserSetting(interaction.user.id, { speaker_id: newSpeakerId });
+          userSetting.speaker_id = newSpeakerId;
 
-        const updatedEmbed = new EmbedBuilder()
-          .setTitle('読み上げ話者設定完了')
-          .setDescription(`話者を ID: ${newSpeakerId} に更新しました。`)
-          .setColor(0x2ECC71);
+          const updatedEmbed = new EmbedBuilder()
+            .setTitle('✅ 読み上げ設定完了！')
+            .setDescription(`声を ID: ${newSpeakerId} に更新しました。\nさっそくチャットで何か喋らせてみてください！`)
+            .setColor(0x2ECC71);
 
-        await i.update({
-          embeds: [updatedEmbed],
-          components: [],
-        });
-        collector.stop('selected');
+          await i.update({
+            embeds: [updatedEmbed],
+            components: [],
+          });
+          collector.stop('selected');
+        }
       } else if (i.isButton()) {
         if (i.customId === 'prev_page' && currentPage > 0) {
           currentPage--;
+          await i.update(buildCharacterOptions(currentPage));
         } else if (i.customId === 'next_page' && currentPage < maxPage) {
           currentPage++;
+          await i.update(buildCharacterOptions(currentPage));
+        } else if (i.customId === 'back_to_character') {
+          // 「戻る」ボタンが押されたらキャラクター選択画面（Step 1）へ戻る
+          await i.update(buildCharacterOptions(currentPage));
         }
-        await i.update(buildMessageOptions(currentPage));
       }
     });
 
     collector.on('end', async (collected, reason) => {
       if (reason === 'time') {
         const timeoutEmbed = new EmbedBuilder()
-          .setTitle('読み上げ話者設定')
-          .setDescription('タイムアウトしました。再度コマンドを実行してください。')
+          .setTitle('⏳ 読み上げ設定タイムアウト')
+          .setDescription('一定時間操作がなかったため終了しました。再度コマンドを実行してください。')
           .setColor(0x95A5A6);
 
         await interaction.editReply({
