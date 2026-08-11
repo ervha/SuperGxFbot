@@ -5,7 +5,7 @@ module.exports = {
 	name: Events.ClientReady,
 	once: true,
 	async execute(client) {
-		client.user.setActivity('hi!', { type: ActivityType.Playing });
+		client.user.setActivity('Now Active!', { type: ActivityType.Playing });
 
 		await console.log(`Ready! Logged in as ${client.user.tag}`);
 
