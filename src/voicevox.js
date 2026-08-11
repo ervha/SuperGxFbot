@@ -12,7 +12,7 @@ const apiClient = axios.create({
 
 const systemAudioCache = new Map();
 const audioCache = new Map();
-const MAX_CACHE_SIZE = 100;
+const MAX_CACHE_SIZE = 300;
 
 async function getSpeakers() {
   try {

@@ -13,37 +13,6 @@ const dataManager = require('./dataManager');
 
 const guildManagers = new Map();
 
-function resampleWavToRaw(wavBuffer) {
-  // Voicevox output is 24000Hz, 16-bit, Mono PCM.
-  // We need 48000Hz, 16-bit, Stereo PCM.
-  const dataOffset = 44;
-  if (wavBuffer.length <= dataOffset) return Buffer.alloc(0);
-
-  const pcmLength = wavBuffer.length - dataOffset;
-  const outBuffer = Buffer.alloc(pcmLength * 4);
-
-  let outOffset = 0;
-  let prevSample = wavBuffer.readInt16LE(dataOffset);
-
-  for (let i = dataOffset; i < wavBuffer.length; i += 2) {
-    const currentSample = wavBuffer.readInt16LE(i);
-    const midSample = Math.round((prevSample + currentSample) / 2);
-
-    // Timestamp 1 (interpolated)
-    outBuffer.writeInt16LE(midSample, outOffset);       // Left
-    outBuffer.writeInt16LE(midSample, outOffset + 2);   // Right
-
-    // Timestamp 2 (actual)
-    outBuffer.writeInt16LE(currentSample, outOffset + 4); // Left
-    outBuffer.writeInt16LE(currentSample, outOffset + 6); // Right
-
-    outOffset += 8;
-    prevSample = currentSample;
-  }
-
-  return outBuffer;
-}
-
 function getGuildManager(guildId) {
   return guildManagers.get(guildId) || null;
 }
@@ -137,10 +106,7 @@ function enqueueText(guildId, text, userSetting) {
     userSetting.speed,
     userSetting.intonation,
     serverSetting.volume
-  ).then(audioBuffer => {
-    if (!audioBuffer) return null;
-    return resampleWavToRaw(audioBuffer);
-  }).catch(error => {
+  ).catch(error => {
     console.error(`Pre-generation failed for guild ${guildId}:`, error.message);
     return null;
   });
@@ -163,18 +129,16 @@ async function playNext(guildId) {
   const item = manager.queue.shift();
 
   try {
-    const rawBuffer = await item.audioPromise;
+    const wavBuffer = await item.audioPromise;
 
-    if (!rawBuffer) {
+    if (!wavBuffer) {
       manager.isPlaying = false;
       playNext(guildId);
       return;
     }
 
-    const stream = Readable.from(rawBuffer);
-    const resource = createAudioResource(stream, {
-      inputType: StreamType.Raw,
-    });
+    const stream = Readable.from(wavBuffer);
+    const resource = createAudioResource(stream);
 
     manager.player.play(resource);
   } catch (error) {
