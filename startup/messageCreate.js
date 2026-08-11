@@ -24,6 +24,7 @@ function normalizeText(content, guild, dictionary) {
   });
 
   text = text.replace(/<a?:([a-zA-Z0-9_]+):\d+>/g, '$1');
+  text = text.replace(/(?<![a-zA-Z])[wｗ]+(?![a-zA-Z.])/gi, '草');
 
   if (dictionary && dictionary.length > 0) {
     for (const item of dictionary) {
