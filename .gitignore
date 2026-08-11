@@ -3,3 +3,4 @@ config.json
 gxf_reiun_com
 icon
 .env
+docker-compose.yml
