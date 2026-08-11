@@ -1,25 +1,35 @@
 const { Events, ActivityType } = require('discord.js');
+const db = require('../src/db');
+const dataManager = require('../src/dataManager');
 require('dotenv').config();
 const { logging_channel_id } = process.env;
 
 module.exports = {
-	name: Events.ClientReady,
-	once: true,
-	async execute(client) {
-		client.user.setActivity('Now Active!', { type: ActivityType.Playing });
+  name: Events.ClientReady,
+  once: true,
+  async execute(client) {
+    client.user.setActivity('Now Active!', { type: ActivityType.Playing });
 
-		await console.log(`Ready! Logged in as ${client.user.tag}`);
+    console.log(`Ready! Logged in as ${client.user.tag}`);
 
-		try {
-			const loggingChannel = client.channels.cache.get(logging_channel_id);
+    try {
+      await db.initDatabase();
+      await dataManager.loadAllData();
+      console.log('Database and cache loading initialized successfully on startup.');
+    } catch (error) {
+      console.error('Failed to initialize database or load cache on startup:', error);
+    }
 
-			if (loggingChannel) {
-				await loggingChannel.send(`✅ Botを起動しました`);
-			} else {
-				console.error(`設定されたロギングチャンネルID (${logging_channel_id}) が見つかりません。`);
-			}
-		} catch (error) {
-			console.error('起動メッセージの送信中にエラーが発生しました:', error);
-		}
-	},
+    try {
+      const loggingChannel = client.channels.cache.get(logging_channel_id);
+
+      if (loggingChannel) {
+        await loggingChannel.send('Botを起動しました');
+      } else {
+        console.error(`設定されたロギングチャンネルID (${logging_channel_id}) が見つかりません。`);
+      }
+    } catch (error) {
+      console.error('起動メッセージの送信中にエラーが発生しました:', error);
+    }
+  },
 };
