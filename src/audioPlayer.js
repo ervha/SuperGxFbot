@@ -13,6 +13,32 @@ const dataManager = require('./dataManager');
 
 const guildManagers = new Map();
 
+function resampleWavToRaw(wavBuffer) {
+  const dataOffset = 44;
+  if (wavBuffer.length <= dataOffset) return Buffer.alloc(0);
+
+  const pcmLength = wavBuffer.length - dataOffset;
+  const outBuffer = Buffer.alloc(pcmLength * 4);
+  
+  let outOffset = 0;
+  let prevSample = wavBuffer.readInt16LE(dataOffset);
+
+  for (let i = dataOffset; i < wavBuffer.length; i += 2) {
+    const currentSample = wavBuffer.readInt16LE(i);
+    const midSample = Math.round((prevSample + currentSample) / 2);
+    
+    outBuffer.writeInt16LE(midSample, outOffset);       // Left
+    outBuffer.writeInt16LE(midSample, outOffset + 2);   // Right
+    outBuffer.writeInt16LE(currentSample, outOffset + 4); // Left
+    outBuffer.writeInt16LE(currentSample, outOffset + 6); // Right
+    
+    outOffset += 8;
+    prevSample = currentSample;
+  }
+  
+  return outBuffer;
+}
+
 function getGuildManager(guildId) {
   return guildManagers.get(guildId) || null;
 }
@@ -99,6 +125,7 @@ function enqueueText(guildId, text, userSetting) {
   if (!manager) return false;
 
   const serverSetting = dataManager.getServerSetting(guildId);
+
   const audioPromise = voicevox.generateAudio(
     text,
     userSetting.speaker_id,
@@ -111,7 +138,7 @@ function enqueueText(guildId, text, userSetting) {
     return null;
   });
 
-  manager.queue.push({ text, userSetting, audioPromise });
+  manager.queue.push({ audioPromise });
 
   if (!manager.isPlaying) {
     playNext(guildId);
@@ -137,8 +164,11 @@ async function playNext(guildId) {
       return;
     }
 
-    const stream = Readable.from(wavBuffer);
-    const resource = createAudioResource(stream);
+    const rawBuffer = resampleWavToRaw(wavBuffer);
+    const stream = Readable.from(rawBuffer);
+    const resource = createAudioResource(stream, {
+      inputType: StreamType.Raw,
+    });
 
     manager.player.play(resource);
   } catch (error) {

@@ -82,7 +82,20 @@ module.exports = {
       }
 
       const userSetting = dataManager.getUserSetting(message.author.id);
-      audioPlayer.enqueueText(guildId, processed, userSetting);
+      
+      // レスポンス速度向上のため、文単位（。！？改行）で分割してキューに入れる
+      const chunks = processed.match(/([^。！？\n]+[。！？\n]*)/g);
+      
+      if (chunks && chunks.length > 0) {
+        for (const chunk of chunks) {
+          const trimmedChunk = chunk.trim();
+          if (trimmedChunk.length > 0) {
+            audioPlayer.enqueueText(guildId, trimmedChunk, userSetting);
+          }
+        }
+      } else {
+        audioPlayer.enqueueText(guildId, processed, userSetting);
+      }
     }
   },
 };
