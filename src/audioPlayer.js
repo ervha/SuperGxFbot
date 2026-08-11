@@ -21,26 +21,26 @@ function resampleWavToRaw(wavBuffer) {
 
   const pcmLength = wavBuffer.length - dataOffset;
   const outBuffer = Buffer.alloc(pcmLength * 4);
-  
+
   let outOffset = 0;
   let prevSample = wavBuffer.readInt16LE(dataOffset);
 
   for (let i = dataOffset; i < wavBuffer.length; i += 2) {
     const currentSample = wavBuffer.readInt16LE(i);
     const midSample = Math.round((prevSample + currentSample) / 2);
-    
+
     // Timestamp 1 (interpolated)
     outBuffer.writeInt16LE(midSample, outOffset);       // Left
     outBuffer.writeInt16LE(midSample, outOffset + 2);   // Right
-    
+
     // Timestamp 2 (actual)
     outBuffer.writeInt16LE(currentSample, outOffset + 4); // Left
     outBuffer.writeInt16LE(currentSample, outOffset + 6); // Right
-    
+
     outOffset += 8;
     prevSample = currentSample;
   }
-  
+
   return outBuffer;
 }
 
@@ -129,7 +129,24 @@ function enqueueText(guildId, text, userSetting) {
   const manager = guildManagers.get(guildId);
   if (!manager) return false;
 
-  manager.queue.push({ text, userSetting });
+  const serverSetting = dataManager.getServerSetting(guildId);
+  const audioPromise = voicevox.generateAudio(
+    text,
+    userSetting.speaker_id,
+    userSetting.pitch,
+    userSetting.speed,
+    userSetting.intonation,
+    serverSetting.volume
+  ).then(audioBuffer => {
+    if (!audioBuffer) return null;
+    return resampleWavToRaw(audioBuffer);
+  }).catch(error => {
+    console.error(`Pre-generation failed for guild ${guildId}:`, error.message);
+    return null;
+  });
+
+  manager.queue.push({ text, userSetting, audioPromise });
+
   if (!manager.isPlaying) {
     playNext(guildId);
   }
@@ -146,23 +163,14 @@ async function playNext(guildId) {
   const item = manager.queue.shift();
 
   try {
-    const serverSetting = dataManager.getServerSetting(guildId);
-    const audioBuffer = await voicevox.generateAudio(
-      item.text,
-      item.userSetting.speaker_id,
-      item.userSetting.pitch,
-      item.userSetting.speed,
-      item.userSetting.intonation,
-      serverSetting.volume
-    );
+    const rawBuffer = await item.audioPromise;
 
-    if (!audioBuffer) {
+    if (!rawBuffer) {
       manager.isPlaying = false;
       playNext(guildId);
       return;
     }
 
-    const rawBuffer = resampleWavToRaw(audioBuffer);
     const stream = Readable.from(rawBuffer);
     const resource = createAudioResource(stream, {
       inputType: StreamType.Raw,
