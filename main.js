@@ -25,12 +25,11 @@ const client = new Client({
 });
 
 console.log("スタートアップファイルを読み込んでいます・・・");
-const startupPath = path.join(__dirname, 'src', 'startup');
-const startupFiles = fs.readdirSync(startupPath).filter(file => file.endsWith('.js'));
+const eventsPath = path.join(__dirname, 'src', 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
-for (const file of startupFiles) {
-	const filePath = path.join(startupPath, file);
-	const event = require(filePath);
+for (const file of eventFiles) {
+	const event = require(`./src/events/${file}`);
 	if (event.once) {
 		client.once(event.name, (...args) => event.execute(...args));
 	} else {
