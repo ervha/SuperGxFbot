@@ -5,3 +5,5 @@ icon
 .env
 docker-compose.yml
 audio_cache
+bst
+bat/
