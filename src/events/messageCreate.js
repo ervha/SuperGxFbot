@@ -44,7 +44,7 @@ function normalizeText(content, guild, dictionary) {
 function advancedChunkText(text) {
   // 1. まずは明確な区切り（句読点、記号、空白）で分割
   const initialChunks = text.match(/([^。！？\n、，\s　]+[。！？\n、，\s　]*)/g) || [text];
-  
+
   const finalChunks = [];
   const MAX_LENGTH = 20; // 20文字以上なら強制分割の対象（ラグ防止）
 
@@ -53,9 +53,9 @@ function advancedChunkText(text) {
       // 10文字目以降で最初に出現する「助詞（てにをは）」を探してそこで自然に分割する
       const searchTarget = chunk.substring(10);
       const match = searchTarget.match(/(て|に|を|は|が|で|と|も|から|まで|し)/);
-      
+
       let splitIndex = -1;
-      
+
       if (match) {
         // 助詞の直後で切る
         splitIndex = 10 + match.index + match[1].length;
@@ -75,7 +75,7 @@ function advancedChunkText(text) {
       finalChunks.push(chunk.trim());
     }
   }
-  
+
   return finalChunks;
 }
 
@@ -124,9 +124,9 @@ module.exports = {
         if (hasImage) attachmentText += '画像を送信しました。';
         if (hasVideo) attachmentText += '動画を送信しました。';
         if (hasAudio) attachmentText += '音声ファイルを送信しました。';
-        
+
         if (attachmentText !== '') {
-           processed = processed ? processed + ' ' + attachmentText : attachmentText;
+          processed = processed ? processed + ' ' + attachmentText : attachmentText;
         }
       }
 
@@ -138,21 +138,21 @@ module.exports = {
       }
 
       const userSetting = dataManager.getUserSetting(message.author.id);
-      
+
       // 自然言語処理による高度なチャンク分割
       const chunks = advancedChunkText(processed);
-      
+
       if (chunks && chunks.length > 0) {
         // メッセージ全体の文字数に基づく「自動早口」機能（最大文字数制限後）
         const totalLength = processed.length;
         let speedMultiplier = 1.0;
-        
+
         if (totalLength >= 40) {
-          speedMultiplier = 1.5;  // 40文字以上は1.5倍速
+          speedMultiplier = 1.25;  // 40文字以上は1.25倍速
         } else if (totalLength >= 30) {
-          speedMultiplier = 1.3;  // 30文字以上は1.3倍速
+          speedMultiplier = 1.15;  // 30文字以上は1.15倍速
         } else if (totalLength >= 20) {
-          speedMultiplier = 1.15; // 20文字以上はほんの少しだけ速く
+          speedMultiplier = 1.1; // 20文字以上はほんの少しだけ速く
         }
 
         // ユーザーの基本スピードに乗算し、上限（2.0）を超えないよう制限
