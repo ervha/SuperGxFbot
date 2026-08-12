@@ -225,6 +225,13 @@ async function restoreConnections(client) {
         // しれっと戻るために静かに再接続
         joinChannel(voiceChannel, row.text_channel_id);
         console.log(`[Auto-Restore] サーバー: ${guild.name} のVCに再接続しました`);
+        
+        if (row.text_channel_id) {
+          const textChannel = await guild.channels.fetch(row.text_channel_id).catch(() => null);
+          if (textChannel && textChannel.isTextBased()) {
+            await textChannel.send('🔄 **[システム通知]**\nボットが再起動・または再接続処理を行ったため、自動復帰しました。引き続き読み上げを行います！').catch(() => {});
+          }
+        }
       } catch (e) {
         console.error(`[Auto-Restore] guild ${row.guild_id} の復元に失敗しました:`, e);
       }
