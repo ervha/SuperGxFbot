@@ -186,7 +186,8 @@ function ensurePreGeneration(guildId) {
     ungeneratedItem.userSetting.pitch,
     ungeneratedItem.userSetting.speed,
     ungeneratedItem.userSetting.intonation,
-    serverSetting.volume
+    serverSetting.volume,
+    ungeneratedItem.isSystem
   ).catch(error => {
     console.error(`Pre-generation failed for guild ${guildId}:`, error.message);
     return null;
@@ -197,11 +198,11 @@ function ensurePreGeneration(guildId) {
   });
 }
 
-function enqueueText(guildId, text, userSetting) {
+function enqueueText(guildId, text, userSetting, isSystem = false) {
   const manager = guildManagers.get(guildId);
   if (!manager) return false;
 
-  manager.queue.push({ text, userSetting, audioPromise: null, isGenerating: false });
+  manager.queue.push({ text, userSetting, audioPromise: null, isGenerating: false, isSystem });
   
   // 事前生成ループをキック
   ensurePreGeneration(guildId);

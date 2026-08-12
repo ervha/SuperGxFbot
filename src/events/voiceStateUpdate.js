@@ -30,7 +30,7 @@ module.exports = {
               const displayName = oldState.member.displayName;
               const noticeText = `${displayName}さんが退室しました`;
               const userSetting = dataManager.getUserSetting(oldState.member.id);
-              audioPlayer.enqueueText(guildId, noticeText, userSetting);
+              audioPlayer.enqueueText(guildId, noticeText, userSetting, true);
             }
           }
         }
@@ -74,7 +74,7 @@ module.exports = {
       const noticeText = `${displayName}さんが入室しました`;
       const userSetting = dataManager.getUserSetting(newState.member.id);
 
-      audioPlayer.enqueueText(guildId, noticeText, userSetting);
+      audioPlayer.enqueueText(guildId, noticeText, userSetting, true);
     }
   },
 };
