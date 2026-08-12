@@ -147,11 +147,7 @@ module.exports = {
         const totalLength = processed.length;
         let speedMultiplier = 1.0;
 
-        if (totalLength >= 40) {
-          speedMultiplier = 1.25;  // 40文字以上は1.25倍速
-        } else if (totalLength >= 30) {
-          speedMultiplier = 1.15;  // 30文字以上は1.15倍速
-        } else if (totalLength >= 20) {
+        if (totalLength >= 20) {
           speedMultiplier = 1.1; // 20文字以上はほんの少しだけ速く
         }
 
