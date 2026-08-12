@@ -59,4 +59,37 @@ for (const folder of commandFolders) {
 
 console.log(`ロードが完了しました。`)
 
+// ==========================================
+// グローバル・セーフティネット（クラッシュ防止）
+// ==========================================
+process.on('unhandledRejection', async (reason, promise) => {
+	console.error('[SafetyNet] Unhandled Rejection at:', promise, 'reason:', reason);
+	try {
+		const ownerId = process.env.ownerId;
+		if (ownerId && client.isReady()) {
+			const owner = await client.users.fetch(ownerId);
+			if (owner) {
+				owner.send(`⚠️ **[セーフティネット作動]**\n想定外の非同期エラー(Unhandled Rejection)をキャッチしてクラッシュを防止しました。\n\`\`\`\n${reason.stack || reason}\n\`\`\``).catch(() => {});
+			}
+		}
+	} catch (e) {
+		// DM送信失敗時は無視
+	}
+});
+
+process.on('uncaughtException', async (error) => {
+	console.error('[SafetyNet] Uncaught Exception:', error);
+	try {
+		const ownerId = process.env.ownerId;
+		if (ownerId && client.isReady()) {
+			const owner = await client.users.fetch(ownerId);
+			if (owner) {
+				owner.send(`🚨 **[重大エラー回避]**\n想定外の致命的エラー(Uncaught Exception)をキャッチしてクラッシュを防止しました。\n\`\`\`\n${error.stack || error}\n\`\`\``).catch(() => {});
+			}
+		}
+	} catch (e) {
+		// DM送信失敗時は無視
+	}
+});
+
 client.login(token);
