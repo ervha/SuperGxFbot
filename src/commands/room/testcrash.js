@@ -1,11 +1,11 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("testcrash")
 		.setDescription('開発用：セーフティネットのテストエラーを発生させます'),
 	async execute(interaction) {
-		await interaction.reply({ content: '3秒後に意図的な非同期エラー（Unhandled Rejection）を発生させます。管理者宛にDMが届くか確認してください。', ephemeral: true });
+		await interaction.reply({ content: '3秒後に意図的な非同期エラー（Unhandled Rejection）を発生させます。管理者宛にDMが届くか確認してください。', flags: MessageFlags.Ephemeral });
         
         // 3秒後に、catchされないPromiseエラーを発生させる
 		setTimeout(() => {
