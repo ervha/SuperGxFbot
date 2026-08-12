@@ -61,6 +61,14 @@ async function initDatabase() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS active_connections (
+      guild_id VARCHAR(64) PRIMARY KEY,
+      voice_channel_id VARCHAR(64) NOT NULL,
+      text_channel_id VARCHAR(64) NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   try { await pool.query('ALTER TABLE users ADD COLUMN intonation FLOAT NOT NULL DEFAULT 1.0'); } catch(e) { if(e.code !== 'ER_DUP_FIELDNAME') console.error(e); }
   try { await pool.query('ALTER TABLE server_settings ADD COLUMN volume FLOAT NOT NULL DEFAULT 1.0'); } catch(e) { if(e.code !== 'ER_DUP_FIELDNAME') console.error(e); }
 

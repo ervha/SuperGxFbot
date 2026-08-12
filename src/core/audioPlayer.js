@@ -10,6 +10,7 @@ const {
 const { Readable } = require('stream');
 const voicevox = require('./voicevox');
 const dataManager = require('./dataManager');
+const { getPool } = require('./db');
 
 const guildManagers = new Map();
 
@@ -122,6 +123,16 @@ function joinChannel(voiceChannel, textChannelId = null) {
 
   guildManagers.set(guildId, manager);
 
+  // DBにアクティブな接続を保存
+  if (textChannelId) {
+    getPool().query(
+      'INSERT INTO active_connections (guild_id, voice_channel_id, text_channel_id) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE voice_channel_id = VALUES(voice_channel_id), text_channel_id = VALUES(text_channel_id)',
+      [guildId, voiceChannel.id, textChannelId]
+    ).catch(error => {
+      console.error(`Failed to save active connection for guild ${guildId}:`, error);
+    });
+  }
+
   player.on(AudioPlayerStatus.Idle, () => {
     manager.isPlaying = false;
     playNext(guildId);
@@ -184,8 +195,45 @@ function leaveChannel(guildId) {
     console.error(`Failed to destroy voice connection for guild ${guildId}:`, error.message);
   } finally {
     guildManagers.delete(guildId);
+    getPool().query('DELETE FROM active_connections WHERE guild_id = ?', [guildId])
+      .catch(error => console.error(`Failed to delete active connection for guild ${guildId}:`, error));
   }
 }
+
+async function restoreConnections(client) {
+  try {
+    const pool = getPool();
+    const [rows] = await pool.query('SELECT guild_id, voice_channel_id, text_channel_id FROM active_connections');
+    if (rows.length === 0) return;
+    
+    console.log(`[Auto-Restore] 以前の接続情報を復元します (${rows.length}件)`);
+    
+    for (const row of rows) {
+      try {
+        const guild = await client.guilds.fetch(row.guild_id).catch(() => null);
+        if (!guild) {
+          await pool.query('DELETE FROM active_connections WHERE guild_id = ?', [row.guild_id]);
+          continue;
+        }
+        
+        const voiceChannel = await guild.channels.fetch(row.voice_channel_id).catch(() => null);
+        if (!voiceChannel || !voiceChannel.isVoiceBased()) {
+          await pool.query('DELETE FROM active_connections WHERE guild_id = ?', [row.guild_id]);
+          continue;
+        }
+
+        // しれっと戻るために静かに再接続
+        joinChannel(voiceChannel, row.text_channel_id);
+        console.log(`[Auto-Restore] サーバー: ${guild.name} のVCに再接続しました`);
+      } catch (e) {
+        console.error(`[Auto-Restore] guild ${row.guild_id} の復元に失敗しました:`, e);
+      }
+    }
+  } catch (error) {
+    console.error(`[Auto-Restore] DBからの復元処理に失敗しました:`, error);
+  }
+}
+
 
 function ensurePreGeneration(guildId) {
   const manager = guildManagers.get(guildId);
@@ -334,6 +382,10 @@ function setReadChannelId(guildId, channelId) {
   const manager = guildManagers.get(guildId);
   if (manager) {
     manager.readChannelId = channelId;
+    getPool().query(
+      'UPDATE active_connections SET text_channel_id = ? WHERE guild_id = ?',
+      [channelId, guildId]
+    ).catch(err => console.error(err));
   }
 }
 
@@ -347,4 +399,5 @@ module.exports = {
   getReadChannelId,
   setReadChannelId,
   getGuildManager,
+  restoreConnections,
 };
