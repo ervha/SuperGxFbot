@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const fs = require('fs').promises;
 const path = require('path');
+const roomManager = require('../../core/roomManager');
 require('dotenv').config();
 const { api_token } = process.env;
 const axios = require('axios');
@@ -21,10 +21,6 @@ module.exports = {
 		if (!interaction.isCommand()) return;
 		await interaction.deferReply({});
 		const content = interaction.options.getInteger('room_number');
-		const config_filePath = path.join(__dirname, '../../../data/bot-config.json');
-		const rooms_filePath = path.join(__dirname, '../../../data/room.json');
-		const dir = path.dirname(rooms_filePath);
-		await fs.mkdir(dir, { recursive: true });
 
 		await roomMutex.lock();
 		try {
@@ -38,13 +34,7 @@ module.exports = {
 
 			let addroom = content;
 
-			let maxMemberValue = 10;
-			try {
-				const data2 = await fs.readFile(config_filePath, 'utf8');
-				maxMemberValue = JSON.parse(data2).max_member;
-			} catch (error) {
-				maxMemberValue = 10;
-			}
+			let maxMemberValue = await roomManager.getMaxMember();
 
 			if (maxMemberValue < content) {
 				await interaction.editReply({
@@ -54,13 +44,7 @@ module.exports = {
 				return;
 			}
 
-			let roomsData = [];
-			try {
-				const data_Check = await fs.readFile(rooms_filePath, 'utf8');
-				roomsData = JSON.parse(data_Check).rooms || [];
-			} catch (error) {
-				roomsData = [];
-			}
+			let roomsData = await roomManager.getRoomsData();
 			let maxMemberValue_Check = roomsData.map(room => room.room_number);
 
 			if (maxMemberValue_Check.includes(content)) {
@@ -136,7 +120,7 @@ module.exports = {
 				roomsData[i + 1].holder = hoji_taiki[i];
 			}
 
-			await fs.writeFile(rooms_filePath, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
+			await roomManager.setRoomsData(roomsData);
 
 			let hoji_taiki_string = "";
 			for (let i = 0; i < taiki_room; i++) {

@@ -15,6 +15,10 @@ module.exports = {
     try {
       await db.initDatabase();
       await dataManager.loadAllData();
+      
+      const roomManager = require('../core/roomManager');
+      await roomManager.initRoomDatabase();
+      
       console.log('Database and cache loading initialized successfully on startup.');
     } catch (error) {
       console.error('Failed to initialize database or load cache on startup:', error);

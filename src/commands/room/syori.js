@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const fs = require('fs').promises;
 const path = require('path');
+const roomManager = require('../../core/roomManager');
 require('dotenv').config();
 const { management_role_id, ownerId, api_token } = process.env;
 const axios = require('axios');
@@ -16,21 +16,13 @@ module.exports = {
 	async execute(interaction) {
 		if (!interaction.isCommand()) return;
 		await interaction.deferReply({});
-		const config_filePath = path.join(__dirname, '../../../data/bot-config.json');
-		const rooms_filePath = path.join(__dirname, '../../../data/room.json');
 
 		await roomMutex.lock();
 		try {
 			if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
 				try {
 
-					let roomsData = [];
-					try {
-						const data2 = await fs.readFile(rooms_filePath, 'utf8');
-						roomsData = JSON.parse(data2).rooms || [];
-					} catch (error) {
-						roomsData = [];
-					}
+					let roomsData = await roomManager.getRoomsData();
 
 					let removedRoom = null;
 					if (roomsData.length > 0) {
@@ -81,17 +73,11 @@ module.exports = {
 						}
 
 						await interaction.editReply(`部屋の処理を確認しました\n処理待ちの部屋はありません`);
-						await fs.writeFile(rooms_filePath, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
+						await roomManager.setRoomsData(roomsData);
 						return;
 					}
 
-					let maxMemberValue = 10;
-					try {
-						const data = await fs.readFile(config_filePath, 'utf8');
-						maxMemberValue = JSON.parse(data).max_member;
-					} catch (error) {
-						maxMemberValue = 10;
-					}
+					let maxMemberValue = await roomManager.getMaxMember();
 
 					let room_number_Array = roomsData.map(room => room.room_number);
 
@@ -156,7 +142,7 @@ module.exports = {
 						roomsData[i + 1].holder = hoji_taiki[i];
 					}
 
-					await fs.writeFile(rooms_filePath, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
+					await roomManager.setRoomsData(roomsData);
 
 					let hoji_taiki_string = "";
 					for (let i = 0; i < nexts_room.length; i++) {

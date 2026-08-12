@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const fs = require('fs').promises;
 const path = require('path');
+const roomManager = require('../../core/roomManager');
 require('dotenv').config();
 const { management_role_id, ownerId, maxMemberValue } = process.env;
 const axios = require('axios');
@@ -27,9 +27,6 @@ module.exports = {
 		const position = interaction.options.getInteger('position');
 		const newRoomNumber = interaction.options.getInteger('newroom_number');
 
-		const config_filePath = path.join(__dirname, '../../../data/bot-config.json');
-		const rooms_filePath = path.join(__dirname, '../../../data/room.json');
-
 		await roomMutex.lock();
 		try {
 			if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
@@ -39,13 +36,7 @@ module.exports = {
 					return;
 				}
 
-				let roomsData = [];
-				try {
-					const data2 = await fs.readFile(rooms_filePath, 'utf8');
-					roomsData = JSON.parse(data2).rooms || [];
-				} catch (error) {
-					roomsData = [];
-				}
+				let roomsData = await roomManager.getRoomsData();
 
 				if (roomsData.length === 0 || position <= 0 || position > roomsData.length) {
 					await interaction.editReply(`エラー：指定された位置（${position}）に部屋が存在しません。現在登録されているのは ${roomsData.length} 部屋です。`);
@@ -60,14 +51,7 @@ module.exports = {
 					return;
 				}
 
-				let maxMemberValue = 10;
-				try {
-					const data = await fs.readFile(config_filePath, 'utf8');
-					const maxMemberConfig = JSON.parse(data);
-					maxMemberValue = maxMemberConfig.max_member || 10;
-				} catch (error) {
-					maxMemberValue = 10;
-				}
+				let maxMemberValue = await roomManager.getMaxMember();
 
 				if (newRoomNumber > maxMemberValue) {
 					await interaction.editReply(`エラー：部屋番号は最大人数(${maxMemberValue})以下でなければなりません。`);
@@ -139,7 +123,7 @@ module.exports = {
 					roomsData[i + 1].holder = hoji_taiki[i];
 				}
 
-				await fs.writeFile(rooms_filePath, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
+				await roomManager.setRoomsData(roomsData);
 
 				const editParams = new URLSearchParams();
 				editParams.append('action', 'edit');

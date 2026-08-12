@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const fs = require('fs').promises;
 const path = require('path');
+const roomManager = require('../../core/roomManager');
 require('dotenv').config();
 const { management_role_id, ownerId } = process.env;
 
@@ -18,17 +18,9 @@ module.exports = {
         await interaction.deferReply({});
         const content = interaction.options.getInteger('max_member');
 
-        const config_filePath = path.join(__dirname, '../../../data/bot-config.json');
-        const dir = path.dirname(config_filePath);
-        await fs.mkdir(dir, { recursive: true });
-
         try {
             if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
-                const dataToSave = {
-                    max_member: content,
-                };
-
-                await fs.writeFile(config_filePath, JSON.stringify(dataToSave, null, 2), 'utf8');
+                await roomManager.setMaxMember(content);
 
                 await interaction.editReply(`最大人数を${content}に設定しました。`);
             } else {

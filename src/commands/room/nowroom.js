@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const fs = require('fs').promises;
 const path = require('path');
+const roomManager = require('../../core/roomManager');
 require('dotenv').config();
 const { maxMemberValue } = process.env;
 
@@ -12,18 +12,9 @@ module.exports = {
 	async execute(interaction) {
 		if (!interaction.isCommand()) return;
 		await interaction.deferReply({});
-		const config_filePath = path.join(__dirname, '../../../data/bot-config.json');
-		const rooms_filePath = path.join(__dirname, '../../../data/room.json')
 
 		try {
-			try {
-				let roomsData = [];
-				try {
-					const data2 = await fs.readFile(rooms_filePath, 'utf8');
-					roomsData = JSON.parse(data2).rooms || [];
-				} catch (error) {
-					roomsData = [];
-				}
+				let roomsData = await roomManager.getRoomsData();
 
 				if (roomsData.length === 0) {
 					await interaction.editReply(`現在処理中の部屋はありません`);
@@ -33,13 +24,7 @@ module.exports = {
 				let currentroom = roomsData[0];
 				let nexts_room = roomsData.slice(1);
 
-				let maxMemberValue = 10;
-				try {
-					const data = await fs.readFile(config_filePath, 'utf8');
-					maxMemberValue = JSON.parse(data).max_member || 10;
-				} catch (error) {
-					maxMemberValue = 10;
-				}
+				let maxMemberValue = await roomManager.getMaxMember();
 
 				let taiki = [];
 				let taiki_room = maxMemberValue - 8;
