@@ -77,6 +77,11 @@ process.on('unhandledRejection', async (reason, promise) => {
 });
 
 process.on('uncaughtException', async (error) => {
+	// @discordjs/voice の切断処理時の既知のエラー（UDPソケットが既に閉じられているのに送信しようとした）は無視する
+	if (error && error.code === 'ERR_SOCKET_DGRAM_NOT_RUNNING') {
+		return;
+	}
+
 	try {
 		const ownerId = process.env.ownerId;
 		if (ownerId && client.isReady()) {
