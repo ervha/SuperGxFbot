@@ -63,7 +63,6 @@ console.log(`ロードが完了しました。`)
 // グローバル・セーフティネット（クラッシュ防止）
 // ==========================================
 process.on('unhandledRejection', async (reason, promise) => {
-	console.error('[SafetyNet] Unhandled Rejection at:', promise, 'reason:', reason);
 	try {
 		const ownerId = process.env.ownerId;
 		if (ownerId && client.isReady()) {
@@ -78,7 +77,6 @@ process.on('unhandledRejection', async (reason, promise) => {
 });
 
 process.on('uncaughtException', async (error) => {
-	console.error('[SafetyNet] Uncaught Exception:', error);
 	try {
 		const ownerId = process.env.ownerId;
 		if (ownerId && client.isReady()) {
