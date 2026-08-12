@@ -16,7 +16,7 @@ const apiClient = axios.create({
 
 const CACHE_DIR = path.join(__dirname, '../audio_cache');
 const SYSTEM_CACHE_DIR = path.join(__dirname, '../audio_cache/system');
-const MAX_CACHE_SIZE = 3000;
+const MAX_CACHE_SIZE = 5000;
 
 if (!fs.existsSync(CACHE_DIR)) {
   fs.mkdirSync(CACHE_DIR, { recursive: true });
@@ -104,7 +104,7 @@ async function generateAudio(text, speakerId = 3, pitch = 0.0, speed = 1.0, into
     queryData.speedScale = Number(speed);
     queryData.intonationScale = Number(intonation);
     queryData.volumeScale = Number(volume);
-    
+
     // 分割された音声同士をスムーズに連結するため、デフォルトで付与される前後の無音時間（各0.1秒）を削除
     queryData.prePhonemeLength = 0.0;
     queryData.postPhonemeLength = 0.0;
