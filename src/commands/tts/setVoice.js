@@ -12,12 +12,10 @@ const dataManager = require('../../core/dataManager');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setvoice')
-    .setDescription('読み上げ話者を対話形式で選択・設定します')
-    .addUserOption(opt => opt.setName('target').setDescription('設定を変更するユーザー（指定しない場合は自分）').setRequired(false)),
+    .setDescription('読み上げ話者を対話形式で選択・設定します'),
 
   async execute(interaction) {
-    const targetUser = interaction.options.getUser('target') || interaction.user;
-    const userSetting = dataManager.getUserSetting(targetUser.id);
+    const userSetting = dataManager.getUserSetting(interaction.user.id);
     const speakersData = await voicevox.getSpeakers() || [];
 
     // ステップ1: キャラクター(モデル)のリストを作成
@@ -69,7 +67,7 @@ module.exports = {
       const rowButtons = new ActionRowBuilder().addComponents(btnPrev, btnNext);
 
       const embed = new EmbedBuilder()
-        .setTitle(`Step 1: ${targetUser.username} のキャラクター選択`)
+        .setTitle('Step 1: キャラクターの選択')
         .setDescription(`現在の設定話者ID: ${userSetting.speaker_id}\n\nまずは声のベースとなる「キャラクター」を選択してください。`)
         .setColor(0x3498DB);
 
@@ -135,12 +133,12 @@ module.exports = {
         } else if (i.customId === 'select_voice_style') {
           // スタイルが選ばれたら設定を保存して終了
           const newSpeakerId = parseInt(i.values[0], 10);
-          await dataManager.setUserSetting(targetUser.id, { speaker_id: newSpeakerId });
+          await dataManager.setUserSetting(interaction.user.id, { speaker_id: newSpeakerId });
           userSetting.speaker_id = newSpeakerId;
 
           const updatedEmbed = new EmbedBuilder()
             .setTitle('✅ 読み上げ設定完了！')
-            .setDescription(`${targetUser} の声を ID: ${newSpeakerId} に更新しました。`)
+            .setDescription(`声を ID: ${newSpeakerId} に更新しました。\nさっそくチャットで何か喋らせてみてください！`)
             .setColor(0x2ECC71);
 
           await i.update({
