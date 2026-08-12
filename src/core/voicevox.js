@@ -120,10 +120,14 @@ async function generateAudio(text, speakerId = 3, pitch = 0.0, speed = 1.0, into
 
     const audioBuffer = Buffer.from(synthesisResponse.data);
 
-    await fsp.writeFile(filePath, audioBuffer);
+    // 長文は「二度と同じ文章が読まれる確率が低く、キャッシュするだけディスクの無駄」なため保存しない
+    // 短文（40文字以下）またはシステム音声の場合のみファイルに保存する
+    if (isSystem || text.length <= 40) {
+      await fsp.writeFile(filePath, audioBuffer);
 
-    if (!isSystem) {
-      cleanUpOldCache();
+      if (!isSystem) {
+        cleanUpOldCache();
+      }
     }
 
     return audioBuffer;
