@@ -4,3 +4,4 @@ gxf_reiun_com
 icon
 .env
 docker-compose.yml
+audio_cache

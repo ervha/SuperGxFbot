@@ -5,6 +5,7 @@ require('dotenv').config();
 const { management_role_id, ownerId, api_token } = process.env;
 const axios = require('axios');
 const { URLSearchParams } = require('url');
+const audioPlayer = require('../../src/audioPlayer');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -72,6 +73,10 @@ module.exports = {
 								'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 							}
 						}).catch(err => console.error('APIステータス更新エラー:', err.message));
+
+						if (interaction.guildId) {
+							audioPlayer.playChime(interaction.guildId);
+						}
 
 						await interaction.editReply(`部屋の処理を確認しました\n処理待ちの部屋はありません`);
 						await fs.writeFile(rooms_filePath, JSON.stringify({ rooms: roomsData }, null, 2), 'utf8');
@@ -169,6 +174,10 @@ module.exports = {
 							'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 						}
 					}).catch(err => console.error('APIステータス更新エラー:', err.message));
+
+					if (interaction.guildId) {
+						audioPlayer.playChime(interaction.guildId);
+					}
 
 					await interaction.editReply(`部屋の処理を確認しました\n\n次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`);
 				} catch (err) {

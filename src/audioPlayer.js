@@ -44,6 +44,36 @@ function resampleWavToRaw(wavBuffer) {
   return outBuffer;
 }
 
+// 物理的なファイルなしでプログラム上から「ピロン♪」という通知音の波形（PCM）を生成する関数
+function createChimePCM() {
+  const sampleRate = 48000;
+  const duration = 0.5;
+  const numSamples = sampleRate * duration;
+  const buffer = Buffer.allocUnsafe(numSamples * 4); // 16bit Stereo
+  
+  for (let i = 0; i < numSamples; i++) {
+    const time = i / sampleRate;
+    // G4(ソ) と B4(シ) の和音で、少し低めで落ち着いた「ポン♪」という音に変更
+    const freq1 = 392.0; 
+    const freq2 = 493.88;
+    
+    // 余韻を残して消えるエンベロープ（減衰を少し緩やかにして柔らかく）
+    const envelope = Math.max(0, Math.exp(-time * 6)); 
+    
+    const val1 = Math.sin(2 * Math.PI * freq1 * time);
+    const val2 = Math.sin(2 * Math.PI * freq2 * time);
+    
+    // 2つの音をミックスし、気にならない程度に音量をさらに抑える（0.15）
+    let val = (val1 + val2) * 0.5 * envelope * 0.15;
+    
+    const intVal = Math.max(-32768, Math.min(32767, val * 32768));
+    
+    buffer.writeInt16LE(intVal, i * 4);     // Left
+    buffer.writeInt16LE(intVal, i * 4 + 2); // Right
+  }
+  return buffer;
+}
+
 function getGuildManager(guildId) {
   return guildManagers.get(guildId) || null;
 }
@@ -77,6 +107,7 @@ function joinChannel(voiceChannel, textChannelId = null) {
     voiceChannelId: voiceChannel.id,
     readChannelId: textChannelId,
     queue: [],
+    priorityQueue: [], // 割り込み・最優先再生用キュー
     isPlaying: false,
   };
 
@@ -174,14 +205,34 @@ function enqueueText(guildId, text, userSetting) {
 
 async function playNext(guildId) {
   const manager = guildManagers.get(guildId);
-  if (!manager || manager.isPlaying || manager.queue.length === 0) {
+  if (!manager || manager.isPlaying) {
     return;
   }
 
+  let item = null;
+  let isPriority = false;
+
+  // 優先キュー（通知音など）があればそちらを先に処理する
+  if (manager.priorityQueue && manager.priorityQueue.length > 0) {
+    item = manager.priorityQueue.shift();
+    isPriority = true;
+  } else if (manager.queue && manager.queue.length > 0) {
+    item = manager.queue.shift();
+  } else {
+    return; // 再生するものが何もない
+  }
+
   manager.isPlaying = true;
-  const item = manager.queue.shift();
 
   try {
+    if (isPriority) {
+      // 優先アイテム（効果音）の場合はそのままPCMバッファとして再生
+      const stream = Readable.from(item.rawBuffer);
+      const resource = createAudioResource(stream, { inputType: StreamType.Raw });
+      manager.player.play(resource);
+      return;
+    }
+
     // 生成が終わるまで待機
     if (!item.audioPromise) {
        // 万が一Promiseがまだない場合は即座に生成開始（通常はensurePreGenerationで開始済み）
@@ -214,10 +265,25 @@ function stopAudio(guildId) {
   if (!manager) return;
 
   manager.queue = [];
+  manager.priorityQueue = [];
   manager.isPlaying = false;
   if (manager.player) {
     manager.player.stop();
   }
+}
+
+// 優先キューにチャイムを追加して再生をトリガーする関数
+function playChime(guildId) {
+  const manager = guildManagers.get(guildId);
+  if (!manager) return false;
+  
+  const chimeBuffer = createChimePCM();
+  manager.priorityQueue.push({ rawBuffer: chimeBuffer });
+  
+  if (!manager.isPlaying) {
+    playNext(guildId);
+  }
+  return true;
 }
 
 function getConnectedChannelId(guildId) {
@@ -244,6 +310,7 @@ module.exports = {
   leaveChannel,
   enqueueText,
   stopAudio,
+  playChime,
   getConnectedChannelId,
   getReadChannelId,
   setReadChannelId,
