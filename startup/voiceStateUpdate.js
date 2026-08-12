@@ -42,7 +42,11 @@ module.exports = {
     const autoJoinChannelId = dataManager.getAutoJoinSetting(guildId);
     const connectedChannelId = audioPlayer.getConnectedChannelId(guildId);
 
-    if (autoJoinChannelId && autoJoinChannelId === newState.channelId && !connectedChannelId) {
+    // 今回入室したチャンネルにいる「ボット以外の人間」の数をカウント
+    const nonBotMembers = newState.channel.members.filter(m => !m.user.bot);
+
+    // 自動接続先であり、未接続で、かつ「入室した人が1人目の人間である（誰もいなかった）」場合のみ接続する
+    if (autoJoinChannelId && autoJoinChannelId === newState.channelId && !connectedChannelId && nonBotMembers.size === 1) {
       try {
         // VC内テキストチャンネルを読み上げ対象としてセット
         audioPlayer.joinChannel(newState.channel, newState.channelId);
