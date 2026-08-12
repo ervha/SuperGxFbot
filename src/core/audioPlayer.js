@@ -63,8 +63,8 @@ function createChimePCM() {
     const val1 = Math.sin(2 * Math.PI * freq1 * time);
     const val2 = Math.sin(2 * Math.PI * freq2 * time);
     
-    // 2つの音をミックスし、気にならない程度に音量をさらに抑える（0.15）
-    let val = (val1 + val2) * 0.5 * envelope * 0.15;
+    // 2つの音をミックスし、聞き取りやすい適度な音量に調整（0.4）
+    let val = (val1 + val2) * 0.5 * envelope * 0.4;
     
     const intVal = Math.max(-32768, Math.min(32767, val * 32768));
     
@@ -226,8 +226,17 @@ async function playNext(guildId) {
 
   try {
     if (isPriority) {
-      // 優先アイテム（効果音）の場合はそのままPCMバッファとして再生
-      const stream = Readable.from(item.rawBuffer);
+      // 優先アイテム（効果音）の場合はファイルからストリームとして再生（discord.jsのストリーム即時終了バグ回避）
+      const fs = require('fs');
+      const path = require('path');
+      const chimePath = path.join(__dirname, '../../audio_cache/system/chime.pcm');
+      
+      if (!fs.existsSync(chimePath)) {
+        fs.mkdirSync(path.dirname(chimePath), { recursive: true });
+        fs.writeFileSync(chimePath, item.rawBuffer);
+      }
+      
+      const stream = fs.createReadStream(chimePath);
       const resource = createAudioResource(stream, { inputType: StreamType.Raw });
       manager.player.play(resource);
       return;
