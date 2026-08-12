@@ -44,8 +44,16 @@ function resampleWavToRaw(wavBuffer) {
   return outBuffer;
 }
 
-// 物理的なファイルなしでプログラム上から「ピロン♪」という通知音の波形（PCM）を生成する関数
 function createChimePCM() {
+  const fs = require('fs');
+  const path = require('path');
+  const chimePath = path.join(__dirname, '../../audio_cache/system/chime.pcm');
+
+  // すでにファイルがあればそれを読み込んで返す
+  if (fs.existsSync(chimePath)) {
+    return fs.readFileSync(chimePath);
+  }
+
   const sampleRate = 48000;
   const duration = 0.5;
   const numSamples = sampleRate * duration;
@@ -53,17 +61,13 @@ function createChimePCM() {
   
   for (let i = 0; i < numSamples; i++) {
     const time = i / sampleRate;
-    // G4(ソ) と B4(シ) の和音で、少し低めで落ち着いた「ポン♪」という音に変更
     const freq1 = 392.0; 
     const freq2 = 493.88;
     
-    // 余韻を残して消えるエンベロープ（減衰を少し緩やかにして柔らかく）
     const envelope = Math.max(0, Math.exp(-time * 6)); 
     
     const val1 = Math.sin(2 * Math.PI * freq1 * time);
     const val2 = Math.sin(2 * Math.PI * freq2 * time);
-    
-    // 2つの音をミックスし、気にならない程度に音量をさらに抑える（0.15）
     let val = (val1 + val2) * 0.5 * envelope * 0.15;
     
     const intVal = Math.max(-32768, Math.min(32767, val * 32768));
@@ -71,6 +75,11 @@ function createChimePCM() {
     buffer.writeInt16LE(intVal, i * 4);     // Left
     buffer.writeInt16LE(intVal, i * 4 + 2); // Right
   }
+
+  // 生成した音声をキャッシュに保存
+  fs.mkdirSync(path.dirname(chimePath), { recursive: true });
+  fs.writeFileSync(chimePath, buffer);
+
   return buffer;
 }
 
