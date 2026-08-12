@@ -44,10 +44,7 @@ module.exports = {
 				}
 				await interaction.editReply(`次に処理する部屋：_**${currentroom.room_number}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`)
 
-			} catch (err) {
-				await interaction.editReply('部屋の確認中にエラーが発生しました')
-			}
-		} catch (error) {
+			} catch (error) {
 			await interaction.editReply({
 				content: `エラーが発生しました。`,
 				flags: MessageFlags.SuppressNotifications
