@@ -133,13 +133,29 @@ function joinChannel(voiceChannel, textChannelId = null) {
     playNext(guildId);
   });
 
-  connection.on(VoiceConnectionStatus.Disconnected, async () => {
-    try {
-      await Promise.race([
-        entersState(connection, VoiceConnectionStatus.Signalling, 5000),
-        entersState(connection, VoiceConnectionStatus.Connecting, 5000),
-      ]);
-    } catch (e) {
+  connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+    // newState.closeCode が 4014 の場合は「ユーザーから手動で切断された」か「チャンネルを移動された」
+    if (newState.reason === 0 || newState.closeCode === 4014) {
+      try {
+        await Promise.race([
+          entersState(connection, VoiceConnectionStatus.Signalling, 5000),
+          entersState(connection, VoiceConnectionStatus.Connecting, 5000),
+        ]);
+        // チャンネル移動などによる一時的な切断であれば復帰する
+      } catch (error) {
+        // 5秒経っても復帰しなければ、手動キックとみなして退出処理
+        leaveChannel(guildId);
+      }
+    } else if (connection.rejoinAttempts < 5) {
+      // ネットワークエラーやDiscord側のサーバークラッシュの場合、自動で再接続(rejoin)を試みる
+      await new Promise(resolve => setTimeout(resolve, (connection.rejoinAttempts + 1) * 1000));
+      if (connection.state.status !== VoiceConnectionStatus.Destroyed) {
+        console.log(`[Auto-Reconnect] 意図しない切断を検知しました。再接続を試みます (Attempt: ${connection.rejoinAttempts + 1}/5)`);
+        connection.rejoin();
+      }
+    } else {
+      // リトライ上限に達した場合は諦める
+      console.error(`[Auto-Reconnect] 再接続の上限に達したため退出します (Guild: ${guildId})`);
       leaveChannel(guildId);
     }
   });
