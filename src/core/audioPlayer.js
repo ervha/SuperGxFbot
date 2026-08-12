@@ -144,6 +144,12 @@ function joinChannel(voiceChannel, textChannelId = null) {
     }
   });
 
+  // 強制切断（キックやチャンネル削除など）によるゾンビ化を完全に防ぐ
+  connection.on(VoiceConnectionStatus.Destroyed, () => {
+    stopAudio(guildId);
+    guildManagers.delete(guildId);
+  });
+
   return manager;
 }
 
