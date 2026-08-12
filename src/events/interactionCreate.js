@@ -17,6 +17,7 @@ module.exports = {
 			try {
 				await command.execute(interaction);
 			} catch (error) {
+				console.error(`Error executing ${interaction.commandName}:`, error);
 				if (interaction.replied || interaction.deferred) {
 					await interaction.followUp({ content: 'このコマンドの実行中にエラーが発生しました', flags: MessageFlags.Ephemeral });
 				} else {
