@@ -1,6 +1,6 @@
 const { Events, EmbedBuilder } = require('discord.js');
-const audioPlayer = require('../src/audioPlayer');
-const dataManager = require('../src/dataManager');
+const audioPlayer = require('../core/audioPlayer');
+const dataManager = require('../core/dataManager');
 
 module.exports = {
   name: Events.VoiceStateUpdate,

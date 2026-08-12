@@ -5,7 +5,8 @@ require('dotenv').config();
 const { api_token } = process.env;
 const axios = require('axios');
 const { URLSearchParams } = require('url');
-const audioPlayer = require('../../src/audioPlayer');
+const audioPlayer = require('../../core/audioPlayer');
+const roomMutex = require('../../core/roomLock');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -20,11 +21,12 @@ module.exports = {
 		if (!interaction.isCommand()) return;
 		await interaction.deferReply({});
 		const content = interaction.options.getInteger('room_number');
-		const config_filePath = path.join(__dirname, '../json/bot-config.json');
-		const rooms_filePath = path.join(__dirname, '../json/room.json');
+		const config_filePath = path.join(__dirname, '../../../data/bot-config.json');
+		const rooms_filePath = path.join(__dirname, '../../../data/room.json');
 		const dir = path.dirname(rooms_filePath);
 		await fs.mkdir(dir, { recursive: true });
 
+		await roomMutex.lock();
 		try {
 			if (!content || content <= 0) {
 				await interaction.editReply({
@@ -178,6 +180,8 @@ module.exports = {
 				content: `エラーが発生しました。`,
 				flags: MessageFlags.SuppressNotifications
 			});
+		} finally {
+			roomMutex.unlock();
 		}
 	},
 };

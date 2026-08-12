@@ -1,6 +1,6 @@
 const { Events, MessageFlags } = require('discord.js');
-const audioPlayer = require('../src/audioPlayer');
-const dataManager = require('../src/dataManager');
+const audioPlayer = require('../core/audioPlayer');
+const dataManager = require('../core/dataManager');
 
 function normalizeText(content, guild, dictionary) {
   let text = content;

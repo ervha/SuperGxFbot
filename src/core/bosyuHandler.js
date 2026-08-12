@@ -15,7 +15,7 @@ async function handleBosyuReaction(reaction, user, isAdd) {
 
 	if (reaction.emoji.name !== '✅') return;
 
-	const filePath = path.join(__dirname, '../commands/json/quests.json');
+	const filePath = path.join(__dirname, '../../data/quests.json');
 
 	try {
 		let bosyuData = [];

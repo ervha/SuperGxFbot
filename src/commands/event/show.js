@@ -13,7 +13,7 @@ module.exports = {
 		if (!interaction.isCommand()) return;
 		await interaction.deferReply({});
 
-		const config_filePath = path.join(__dirname, '../json/bot-config.json');
+		const config_filePath = path.join(__dirname, '../../../data/bot-config.json');
 		const dir = path.dirname(config_filePath);
 		await fs.mkdir(dir, { recursive: true });
 

@@ -5,6 +5,7 @@ require('dotenv').config();
 const { management_role_id, ownerId, maxMemberValue } = process.env;
 const axios = require('axios');
 const { URLSearchParams } = require('url');
+const roomMutex = require('../../core/roomLock');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -26,9 +27,10 @@ module.exports = {
 		const position = interaction.options.getInteger('position');
 		const newRoomNumber = interaction.options.getInteger('newroom_number');
 
-		const config_filePath = path.join(__dirname, '../json/bot-config.json');
-		const rooms_filePath = path.join(__dirname, '../json/room.json');
+		const config_filePath = path.join(__dirname, '../../../data/bot-config.json');
+		const rooms_filePath = path.join(__dirname, '../../../data/room.json');
 
+		await roomMutex.lock();
 		try {
 			if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
 
@@ -193,6 +195,8 @@ module.exports = {
 				content: `エラーが発生しました。`,
 				flags: MessageFlags.SuppressNotifications
 			});
+		} finally {
+			roomMutex.unlock();
 		}
 	},
 };

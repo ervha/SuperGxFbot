@@ -6,8 +6,8 @@ const {
   ButtonBuilder,
   ButtonStyle,
   ComponentType, MessageFlags } = require('discord.js');
-const voicevox = require('../../src/voicevox');
-const dataManager = require('../../src/dataManager');
+const voicevox = require('../../core/voicevox');
+const dataManager = require('../../core/dataManager');
 
 module.exports = {
   data: new SlashCommandBuilder()

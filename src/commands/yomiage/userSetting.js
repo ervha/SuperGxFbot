@@ -4,7 +4,7 @@ const {
   ActionRowBuilder,
   StringSelectMenuBuilder,
   ComponentType, MessageFlags } = require('discord.js');
-const dataManager = require('../../src/dataManager');
+const dataManager = require('../../core/dataManager');
 
 module.exports = {
   data: new SlashCommandBuilder()

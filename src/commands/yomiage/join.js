@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder , MessageFlags } = require('discord.js');
-const audioPlayer = require('../../src/audioPlayer');
+const audioPlayer = require('../../core/audioPlayer');
 
 module.exports = {
   data: new SlashCommandBuilder()

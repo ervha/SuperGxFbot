@@ -14,8 +14,8 @@ const apiClient = axios.create({
   httpsAgent: new https.Agent({ keepAlive: true }),
 });
 
-const CACHE_DIR = path.join(__dirname, '../audio_cache');
-const SYSTEM_CACHE_DIR = path.join(__dirname, '../audio_cache/system');
+const CACHE_DIR = path.join(__dirname, '../../audio_cache');
+const SYSTEM_CACHE_DIR = path.join(__dirname, '../../audio_cache/system');
 const MAX_CACHE_SIZE = 5000;
 
 if (!fs.existsSync(CACHE_DIR)) {

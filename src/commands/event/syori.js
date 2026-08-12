@@ -5,7 +5,8 @@ require('dotenv').config();
 const { management_role_id, ownerId, api_token } = process.env;
 const axios = require('axios');
 const { URLSearchParams } = require('url');
-const audioPlayer = require('../../src/audioPlayer');
+const audioPlayer = require('../../core/audioPlayer');
+const roomMutex = require('../../core/roomLock');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -15,9 +16,10 @@ module.exports = {
 	async execute(interaction) {
 		if (!interaction.isCommand()) return;
 		await interaction.deferReply({});
-		const config_filePath = path.join(__dirname, '../json/bot-config.json');
-		const rooms_filePath = path.join(__dirname, '../json/room.json');
+		const config_filePath = path.join(__dirname, '../../../data/bot-config.json');
+		const rooms_filePath = path.join(__dirname, '../../../data/room.json');
 
+		await roomMutex.lock();
 		try {
 			if (interaction.member.roles.cache.has(management_role_id) || interaction.user.id === ownerId) {
 				try {
@@ -193,6 +195,8 @@ module.exports = {
 				content: `エラーが発生しました。`,
 				flags: MessageFlags.SuppressNotifications
 			});
+		} finally {
+			roomMutex.unlock();
 		}
 	},
 };

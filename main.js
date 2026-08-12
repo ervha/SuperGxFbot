@@ -25,7 +25,7 @@ const client = new Client({
 });
 
 console.log("スタートアップファイルを読み込んでいます・・・");
-const startupPath = path.join(__dirname, 'startup');
+const startupPath = path.join(__dirname, 'src', 'startup');
 const startupFiles = fs.readdirSync(startupPath).filter(file => file.endsWith('.js'));
 
 for (const file of startupFiles) {
@@ -41,7 +41,7 @@ for (const file of startupFiles) {
 console.log("コマンドを読み込んでいます・・・");
 client.commands = new Collection();
 
-const foldersPath = path.join(__dirname, 'commands');
+const foldersPath = path.join(__dirname, 'src', 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
 for (const folder of commandFolders) {

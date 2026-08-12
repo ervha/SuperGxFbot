@@ -1,6 +1,6 @@
 const { Events, ActivityType } = require('discord.js');
-const db = require('../src/db');
-const dataManager = require('../src/dataManager');
+const db = require('../core/db');
+const dataManager = require('../core/dataManager');
 require('dotenv').config();
 const { logging_channel_id } = process.env;
 
