@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>部屋管理ログ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.png" type="image/png">
+</head>
+<body>
+
+<div class="menu-wrapper">
+    <button class="btn-menu" id="menuBtn" title="メニュー">☰</button>
+    <div class="dropdown-menu" id="dropdownMenu">
+        <a href="index.html" class="dropdown-item">部屋管理</a>
+        <a href="log.html" class="dropdown-item">ログ</a>
+        <a href="admin.html" class="dropdown-item">システム</a>
+    </div>
+</div>
+
+<div class="container log-container">
+
+    <h1>動作履歴</h1>
+    
+    <table class="log-table">
+        <thead>
+            <tr>
+                <th class="time-col">日時</th>
+                <th class="type-col">操作</th>
+                <th class="room-col">部屋番号</th>
+                <th class="msg-col">内容</th>
+            </tr>
+        </thead>
+        <tbody id="logContent">
+            <tr>
+                <td colspan="4" class="center-status-msg">ログを読み込み中...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+let lastLogId = 0;
+
+const menuBtn = document.getElementById('menuBtn');
+const dropdownMenu = document.getElementById('dropdownMenu');
+
+menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle('show');
+});
+
+document.addEventListener('click', (e) => {
+    if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
+        dropdownMenu.classList.remove('show');
+    }
+});
+
+function listenForLogs() {
+    fetch(`get_logs.php?last_id=${lastLogId}&t=${new Date().getTime()}`)
+        .then(response => {
+            if (!response.ok) throw new Error("ネットワークエラー");
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === "success") {
+                lastLogId = data.max_id; 
+                renderLogs(data.logs);
+            } else if (data.status === "no_change") {
+                lastLogId = data.max_id;
+            }
+            setTimeout(listenForLogs, 10);
+        })
+        .catch(error => {
+            console.error('ログ同期エラー。5秒後に再試行します:', error);
+            setTimeout(listenForLogs, 5000);
+        });
+}
+
+function renderLogs(logs) {
+    const tbody = document.getElementById('logContent');
+    
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="center-status-msg">履歴はありません。</td></tr>`;
+        return;
+    }
+
+    const isAtBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 60);
+
+    tbody.innerHTML = ""; 
+
+    logs.forEach(log => {
+        const tr = document.createElement('tr');
+        
+        let badgeClass = "badge-update";
+        let badgeText = "全体更新";
+        if (log.action_type === "register") {
+            badgeClass = "badge-register";
+            badgeText = "部屋登録";
+        } else if (log.action_type === "delete") {
+            badgeClass = "badge-delete";
+            badgeText = "処理完了";
+        }
+
+        const cleanMessage = escapeHtml(log.message)
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/_(.*?)_/g, '<em>$1</em>');
+
+        tr.innerHTML = `
+            <td class="time-col">${log.formatted_time}</td>
+            <td class="type-col"><span class="badge ${badgeClass}">${badgeText}</span></td>
+            <td class="room-col">${(log.room_number === "0" || log.room_number === 0) ? "-" : "No. " + escapeHtml(log.room_number)}</td>
+            <td class="msg-col">${cleanMessage}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    if (isAtBottom) {
+        window.scrollTo({
+            top: document.documentElement.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+    });
+}
+
+listenForLogs();
+</script>
+</body>
+</html>

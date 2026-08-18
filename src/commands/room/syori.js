@@ -2,9 +2,7 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const path = require('path');
 const roomManager = require('../../core/roomManager');
 require('dotenv').config();
-const { management_role_id, ownerId, api_token } = process.env;
-const axios = require('axios');
-const { URLSearchParams } = require('url');
+const { management_role_id, ownerId } = process.env;
 const audioPlayer = require('../../core/audioPlayer');
 const roomMutex = require('../../core/roomLock');
 
@@ -31,42 +29,12 @@ module.exports = {
 					}
 
 					if (removedRoom) {
-						const delParams = new URLSearchParams();
-						delParams.append('action', 'delete');
-						delParams.append('room_number', removedRoom.toString());
-						delParams.append('api_key', api_token);
-
-						axios.post('https://gxf.reiun.com/api.php', delParams, {
-							headers: {
-								'Content-Type': 'application/x-www-form-urlencoded',
-								'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-							}
-						}).catch(err => console.error('API削除エラー:', err.message));
+						await roomManager.addRoomLog(removedRoom.toString(), 'delete', `部屋 No.${removedRoom} の処理が完了しました。`);
 					}
 
 					if (roomsData.length === 0) {
-						const clearParams = new URLSearchParams();
-						clearParams.append('action', 'update_all');
-						clearParams.append('api_key', api_token);
-
-						axios.post('https://gxf.reiun.com/api.php', clearParams, {
-							headers: {
-								'Content-Type': 'application/x-www-form-urlencoded',
-								'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-							}
-						}).catch(err => console.error(err));
-
-						const statusParams = new URLSearchParams();
-						statusParams.append('action', 'update_status'); // 新しいアクション名
-						statusParams.append('display_text', '処理待ちの部屋はありません');
-						statusParams.append('api_key', api_token);
-
-						axios.post('https://gxf.reiun.com/api.php', statusParams, {
-							headers: {
-								'Content-Type': 'application/x-www-form-urlencoded',
-								'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-							}
-						}).catch(err => console.error('APIステータス更新エラー:', err.message));
+						await roomManager.addRoomLog('0', 'delete', 'すべての部屋が処理されました。');
+						await roomManager.setStatusText('処理待ちの部屋はありません');
 
 						if (interaction.guildId) {
 							audioPlayer.playChime(interaction.guildId);
@@ -151,17 +119,7 @@ module.exports = {
 
 					const webDisplayText = `次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`;
 
-					const statusParams = new URLSearchParams();
-					statusParams.append('action', 'update_status'); // 新しいアクション名
-					statusParams.append('display_text', webDisplayText);
-					statusParams.append('api_key', api_token);
-
-					axios.post('https://gxf.reiun.com/api.php', statusParams, {
-						headers: {
-							'Content-Type': 'application/x-www-form-urlencoded',
-							'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-						}
-					}).catch(err => console.error('APIステータス更新エラー:', err.message));
+					await roomManager.setStatusText(webDisplayText);
 
 					if (interaction.guildId) {
 						audioPlayer.playChime(interaction.guildId);
