@@ -19,13 +19,10 @@ module.exports = {
       const roomManager = require('../core/roomManager');
       await roomManager.initRoomDatabase();
       
-      const { startWebServer } = require('../web/server');
-      startWebServer();
-      
       const { restoreConnections } = require('../core/audioPlayer');
       await restoreConnections(client);
       
-      console.log('Database, cache, web server, and voice connections initialized successfully on startup.');
+      console.log('Database, cache, and voice connections initialized successfully on startup.');
     } catch (error) {
       console.error('Failed to initialize database, load cache, or restore voice connections on startup:', error);
     }

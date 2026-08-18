@@ -3,6 +3,8 @@ const path = require('path');
 const roomManager = require('../../core/roomManager');
 require('dotenv').config();
 const { management_role_id, ownerId, maxMemberValue } = process.env;
+const axios = require('axios');
+const { URLSearchParams } = require('url');
 const roomMutex = require('../../core/roomLock');
 
 module.exports = {
@@ -123,7 +125,19 @@ module.exports = {
 
 				await roomManager.setRoomsData(roomsData);
 
-				await roomManager.addRoomLog(newRoomNumber.toString(), 'register', `${position}番目の部屋の部屋番号が No.${oldRoomNumber} から No.${newRoomNumber} に修正されました。`);
+				const editParams = new URLSearchParams();
+				editParams.append('action', 'edit');
+				editParams.append('position', position.toString());
+				editParams.append('room_number', newRoomNumber.toString());
+				editParams.append('old_room_number', oldRoomNumber.toString());
+				editParams.append('api_key', api_token);
+
+				await axios.post('https://gxf.reiun.com/api.php', editParams, {
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+						'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+					}
+				}).catch(err => console.error('API修正エラー:', err.message));
 
 				let hoji_taiki_string = "";
 				for (let i = 0; i < taiki_room; i++) {
@@ -132,7 +146,17 @@ module.exports = {
 
 				const webDisplayText = `次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`;
 
-				await roomManager.setStatusText(webDisplayText);
+				const statusParams = new URLSearchParams();
+				statusParams.append('action', 'update_status');
+				statusParams.append('display_text', webDisplayText);
+				statusParams.append('api_key', api_token);
+
+				axios.post('https://gxf.reiun.com/api.php', statusParams, {
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+						'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+					}
+				}).catch(err => console.error('APIステータス更新エラー:', err.message));
 
 				let info_string = "";
 				for (let i = 0; i < taiki_room; i++) {

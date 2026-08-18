@@ -2,6 +2,9 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const path = require('path');
 const roomManager = require('../../core/roomManager');
 require('dotenv').config();
+const { api_token } = process.env;
+const axios = require('axios');
+const { URLSearchParams } = require('url');
 const audioPlayer = require('../../core/audioPlayer');
 const roomMutex = require('../../core/roomLock');
 
@@ -126,8 +129,29 @@ module.exports = {
 
 			const webDisplayText = `次に処理する部屋：_**${room_number_Array[0]}**_、待機する番号：_**${taiki.join(', ')}**_\n${hoji_taiki_string}`;
 
-			await roomManager.addRoomLog(addroom.toString(), 'register', `部屋 No.${addroom} が新しく登録されました。`);
-			await roomManager.setStatusText(webDisplayText);
+			const params = new URLSearchParams();
+			params.append('action', 'add');
+			params.append('room_number', addroom.toString());
+			params.append('api_key', api_token);
+
+			axios.post('https://gxf.reiun.com/api.php', params, {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+					'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+				}
+			}).catch(err => console.error('API追加エラー:', err.message));
+
+			const statusParams = new URLSearchParams();
+			statusParams.append('action', 'update_status'); // 新しいアクション名
+			statusParams.append('display_text', webDisplayText);
+			statusParams.append('api_key', api_token);
+
+			axios.post('https://gxf.reiun.com/api.php', statusParams, {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+					'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+				}
+			}).catch(err => console.error('APIステータス更新エラー:', err.message));
 
 			if (interaction.guildId) {
 				audioPlayer.playChime(interaction.guildId);
